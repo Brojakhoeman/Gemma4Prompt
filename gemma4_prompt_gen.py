@@ -2005,7 +2005,9 @@ class Gemma4PromptGen:
             return False
 
     def _ensure_llama_running(self, server_url: str, llama_exe: str, model_path: str) -> str:
-        """Boot llama-server if not already running, wait for health check."""
+        """Boot llama-server if not already running, wait for health check.
+        Auto-detects mmproj file alongside the GGUF and passes --mmproj if found.
+        """
         if self._check_health(server_url):
             return "✅ llama-server already running"
 
@@ -2014,18 +2016,31 @@ class Gemma4PromptGen:
         if not os.path.isfile(model_path):
             return f"❌ Model GGUF not found at: {model_path}"
 
+        # Auto-detect mmproj in C:\models\ — match any *mmproj*.gguf
+        mmproj_path = None
+        models_dir = os.path.dirname(model_path)
+        for f in os.listdir(models_dir):
+            if "mmproj" in f.lower() and f.lower().endswith(".gguf"):
+                mmproj_path = os.path.join(models_dir, f)
+                print(f"[Gemma4PromptGen] mmproj found: {mmproj_path} — vision enabled")
+                break
+
+        cmd = [
+            llama_exe,
+            "-m", model_path,
+            "-ngl", "99",
+            "--ctx-size", "8192",
+            "--flash-attn", "on",
+            "--reasoning-budget", "0",
+        ]
+        if mmproj_path:
+            cmd += ["--mmproj", mmproj_path]
+
         try:
             CREATE_NEW_PROCESS_GROUP = 0x00000200
             DETACHED_PROCESS = 0x00000008
             Gemma4PromptGen._llama_process = subprocess.Popen(
-                [
-                    llama_exe,
-                    "-m", model_path,
-                    "-ngl", "99",
-                    "--ctx-size", "8192",
-                    "--flash-attn", "on",
-                    "--reasoning-budget", "0",
-                ],
+                cmd,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
                 creationflags=CREATE_NEW_PROCESS_GROUP | DETACHED_PROCESS,
@@ -2033,12 +2048,12 @@ class Gemma4PromptGen:
         except Exception as e:
             return f"❌ Failed to start llama-server: {e}"
 
-        print(f"[Gemma4PromptGen] llama-server starting, waiting for health check...")
+        print(f"[Gemma4PromptGen] llama-server starting {'with vision' if mmproj_path else 'text-only'}, waiting for health check...")
         max_wait = 120
         waited = 0
         while waited < max_wait:
             if self._check_health(server_url):
-                return f"✅ llama-server started ({waited}s)"
+                return f"✅ llama-server started ({waited}s){' — vision enabled' if mmproj_path else ''}"
             time.sleep(2)
             waited += 2
 
@@ -2046,12 +2061,21 @@ class Gemma4PromptGen:
 
     def _kill_llama_server(self):
         """Kill llama-server process to free VRAM after SEND."""
-        try:
-            subprocess.run(["taskkill", "/F", "/IM", "llama-server.exe"],
-                           capture_output=True, text=True, encoding="utf-8",
-                           errors="replace", timeout=10)
-        except Exception:
-            pass
+        for proc_name in ["llama-server.exe", "llama-server", "llama-cli.exe"]:
+            try:
+                subprocess.run(
+                    ["taskkill", "/F", "/IM", proc_name],
+                    capture_output=True, text=True, encoding="utf-8",
+                    errors="replace", timeout=10
+                )
+            except Exception:
+                pass
+        # Also kill by stored PID if we have it
+        if Gemma4PromptGen._llama_process is not None:
+            try:
+                Gemma4PromptGen._llama_process.kill()
+            except Exception:
+                pass
         Gemma4PromptGen._llama_process = None
         print("[Gemma4PromptGen] llama-server killed — VRAM freed.")
 
