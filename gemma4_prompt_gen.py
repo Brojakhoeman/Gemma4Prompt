@@ -2802,17 +2802,20 @@ class Gemma4PromptGen:
             "--ctx-size", "8192",
             "--flash-attn", "on",
         ]
-        # --reasoning-budget is only supported in recent llama.cpp builds.
-        # Check if the binary supports it before adding.
+        # Disable reasoning/thinking to avoid wasting tokens on internal CoT.
+        # --reasoning off fully disables it; fall back to --reasoning-budget 0
+        # for older builds that don't have --reasoning flag.
         try:
             help_out = subprocess.run(
                 [llama_exe, "--help"], capture_output=True, text=True,
                 encoding="utf-8", errors="replace", timeout=5
             )
-            if "--reasoning-budget" in help_out.stdout:
+            if "--reasoning " in help_out.stdout:
+                cmd += ["--reasoning", "off"]
+            elif "--reasoning-budget" in help_out.stdout:
                 cmd += ["--reasoning-budget", "0"]
             else:
-                print("[Gemma4PromptGen] --reasoning-budget not supported by this llama-server build, skipping")
+                print("[Gemma4PromptGen] No reasoning control flags available in this llama-server build")
         except Exception:
             pass  # If --help fails, skip the flag to be safe
         if mmproj_path:
