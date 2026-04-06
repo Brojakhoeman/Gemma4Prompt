@@ -2101,6 +2101,9 @@ class Gemma4PromptGen:
 
             prompt = self._clean_output(prompt, screenplay_mode=(screenplay_mode and "LTX" in target_model))
 
+            if not prompt or not prompt.strip():
+                prompt = "⚠️ LLM returned empty response after cleaning. Check the console log above for raw output."
+
             if not prompt.startswith("❌") and not prompt.startswith("⚠️"):
                 Gemma4PromptGen._last_prompt = prompt
 
@@ -2147,11 +2150,13 @@ class Gemma4PromptGen:
 
         # ── SEND MODE ────────────────────────────────────────────────────
         else:
+            # Always kill llama-server to free VRAM, even if no prompt stored
+            self._kill_llama_server()
+
             if not Gemma4PromptGen._last_prompt:
                 return ("", "❌ No prompt stored yet. Run PREVIEW first.",)
 
             final_prompt = Gemma4PromptGen._last_prompt
-            self._kill_llama_server()
             return (final_prompt, final_prompt,)
 
     # ── Image utility ─────────────────────────────────────────────────────
@@ -2192,16 +2197,10 @@ class Gemma4PromptGen:
 
         parts = []
 
-        # Qwen 3 ships with a chain-of-thought "thinking" mode that runs silently
-        # before producing any output. For video models this is fine — deeper reasoning
-        # helps with arc/audio structure. For image models (booru tags, short prompts)
-        # it burns 5+ minutes producing nothing useful. /no_think disables it instantly.
-        if not is_video_model(target_model):
-            parts.append("/no_think")
-
-        parts.append("Read and follow these instructions carefully:\n")
-        parts.append(system_prompt)
-        parts.append("\n---\n")
+        # NOTE: system_prompt is already sent as the "system" role in _call_llama.
+        # Sending it again here doubles token usage and can overflow small contexts.
+        # Only include task-specific context below (environment, character, etc.).
+        parts.append("Follow the system instructions. Generate the prompt for this scene:\n")
 
         # Animation preset injection
         if animation_preset and animation_preset != "None":
@@ -2473,6 +2472,9 @@ class Gemma4PromptGen:
         if text.startswith("❌") or text.startswith("⚠️"):
             return text
 
+        # Save original for fallback if cleaning is too aggressive
+        original_text = text.strip()
+
         # Strip POSITIVE: label and everything from NEGATIVE: onward.
         # Image models (SDXL, Pony, SD1.5) output both blocks — we only want
         # the positive tags in the prompt wire. Negatives belong in the
@@ -2579,6 +2581,12 @@ class Gemma4PromptGen:
 
         text = "\n".join(cleaned).strip()
 
+        # Fallback: if cleaning stripped everything but LLM did return content,
+        # use original text with just the "Prompt:" prefix removed
+        if not text and original_text:
+            print("[Gemma4PromptGen] Warning: cleaning removed all content, using fallback")
+            text = re.sub(r"(?i)^(prompt|here'?s?[^:]*|sure[^:]*)\s*:\s*", "", original_text, count=1).strip()
+
         if text.startswith("**") and text.endswith("**"):
             text = text[2:-2].strip()
         if len(text) > 2 and text[0] in ('"', "'") and text[-1] == text[0]:
@@ -2629,7 +2637,7 @@ class Gemma4PromptGen:
             "temperature": 1.0,
             "top_p": 0.95,
             "top_k": 64,
-            "max_tokens": 800,
+            "max_tokens": 4096,
             "stream": False,
         }
 
@@ -2643,9 +2651,32 @@ class Gemma4PromptGen:
             )
             with urllib.request.urlopen(req, timeout=300) as resp:
                 result = json.loads(resp.read().decode("utf-8"))
-            content = result["choices"][0]["message"]["content"]
+
+            # Diagnostic logging — shows finish reason, token usage, and raw content
+            choice = result.get("choices", [{}])[0]
+            finish_reason = choice.get("finish_reason", "unknown")
+            usage = result.get("usage", {})
+            prompt_tokens = usage.get("prompt_tokens", "?")
+            completion_tokens = usage.get("completion_tokens", "?")
+            content = choice.get("message", {}).get("content", "")
+            print(f"[Gemma4PromptGen] LLM response: {len(content)} chars, "
+                  f"finish_reason={finish_reason}, "
+                  f"tokens: {prompt_tokens} prompt + {completion_tokens} completion")
+            if len(content) < 50:
+                print(f"[Gemma4PromptGen] Full response: {repr(content)}")
+            else:
+                print(f"[Gemma4PromptGen] Response preview: {repr(content[:300])}")
+
+            if not content and finish_reason == "length":
+                reasoning = choice.get("message", {}).get("reasoning_content", "")
+                if reasoning:
+                    return "❌ Model spent all tokens on thinking and produced no output. Try increasing max_tokens or simplifying the instruction."
+                return "❌ LLM ran out of context window before generating output. Try a shorter instruction."
+
             # Strip any residual thinking tags
             content = re.sub(r'<\|channel>thought\n.*?<channel\|>', '', content, flags=re.DOTALL)
+            # Also strip <think>...</think> tags (Qwen, DeepSeek, etc.)
+            content = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL)
             return content.strip()
         except urllib.error.URLError as e:
             return f"❌ llama-server connection failed: {e}"
@@ -2770,10 +2801,27 @@ class Gemma4PromptGen:
             "-ngl", "99",
             "--ctx-size", "8192",
             "--flash-attn", "on",
-            "--reasoning-budget", "0",
         ]
+        # Disable reasoning/thinking to avoid wasting tokens on internal CoT.
+        # --reasoning off fully disables it; fall back to --reasoning-budget 0
+        # for older builds that don't have --reasoning flag.
+        try:
+            help_out = subprocess.run(
+                [llama_exe, "--help"], capture_output=True, text=True,
+                encoding="utf-8", errors="replace", timeout=5
+            )
+            if "--reasoning " in help_out.stdout:
+                cmd += ["--reasoning", "off"]
+            elif "--reasoning-budget" in help_out.stdout:
+                cmd += ["--reasoning-budget", "0"]
+            else:
+                print("[Gemma4PromptGen] No reasoning control flags available in this llama-server build")
+        except Exception:
+            pass  # If --help fails, skip the flag to be safe
         if mmproj_path:
             cmd += ["--mmproj", mmproj_path]
+
+        print(f"[Gemma4PromptGen] Starting: {' '.join(cmd)}")
 
         try:
             CREATE_NEW_PROCESS_GROUP = 0x00000200
