@@ -2637,7 +2637,7 @@ class Gemma4PromptGen:
             "temperature": 1.0,
             "top_p": 0.95,
             "top_k": 64,
-            "max_tokens": 800,
+            "max_tokens": 4096,
             "stream": False,
         }
 
@@ -2668,6 +2668,9 @@ class Gemma4PromptGen:
                 print(f"[Gemma4PromptGen] Response preview: {repr(content[:300])}")
 
             if not content and finish_reason == "length":
+                reasoning = choice.get("message", {}).get("reasoning_content", "")
+                if reasoning:
+                    return "❌ Model spent all tokens on thinking and produced no output. Try increasing max_tokens or simplifying the instruction."
                 return "❌ LLM ran out of context window before generating output. Try a shorter instruction."
 
             # Strip any residual thinking tags
