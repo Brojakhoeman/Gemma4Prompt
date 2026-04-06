@@ -2797,7 +2797,7 @@ class Gemma4PromptGen:
             "-m", model_path,
             "-ngl", "99",
             "--ctx-size", "8192",
-            "--flash-attn",
+            "--flash-attn", "on",
         ]
         # --reasoning-budget is only supported in recent llama.cpp builds.
         # Check if the binary supports it before adding.
