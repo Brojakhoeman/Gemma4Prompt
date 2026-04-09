@@ -2512,11 +2512,15 @@ class Gemma4PromptGen:
                 # ── Priority 2: bracketed first + last frame ──────────────────
                 elif first_frame is not None and last_frame is not None:
                     try:
-                        image_paths.append(self._tensor_to_tempfile(first_frame))
+                        # Always use the first image in the batch for first_frame
+                        _ff = first_frame[0:1] if first_frame.ndim == 4 else first_frame
+                        image_paths.append(self._tensor_to_tempfile(_ff))
                     except Exception as e:
                         print(f"[Gemma4PromptGen] first_frame encode failed: {e}")
                     try:
-                        image_paths.append(self._tensor_to_tempfile(last_frame))
+                        # Always use the LAST image in the batch for last_frame
+                        _lf = last_frame[-1:] if last_frame.ndim == 4 else last_frame
+                        image_paths.append(self._tensor_to_tempfile(_lf))
                     except Exception as e:
                         print(f"[Gemma4PromptGen] last_frame encode failed: {e}")
                     image_mode = "bracket"
@@ -2593,6 +2597,11 @@ class Gemma4PromptGen:
                         pass
 
             prompt, neg_prompt = self._clean_output(prompt, screenplay_mode=(screenplay_mode and "LTX" in target_model))
+
+            # Guard: if cleaning stripped everything (e.g. model only emitted junk/labels),
+            # surface a clear retryable error rather than passing a blank string downstream
+            if not prompt.startswith("❌") and not prompt.startswith("⚠️") and not prompt.strip():
+                prompt = "⚠️ Model returned a blank prompt after cleaning. Re-queue to retry."
 
             # ── Quality check + optional auto-retry ──────────────────────
             qc_report = ""
@@ -3553,7 +3562,7 @@ class Gemma4PromptGen:
 
     def _clean_output(self, text: str, screenplay_mode: bool = False) -> tuple:
         if text.startswith("❌") or text.startswith("⚠️"):
-            return text
+            return text, ""
 
         # Strip POSITIVE: label and everything from NEGATIVE: onward.
         # Image models (SDXL, Pony, SD1.5) output both blocks — we only want
@@ -3704,11 +3713,14 @@ class Gemma4PromptGen:
         if paths:
             content_blocks = []
             loaded = 0
-            for p in paths:
+            for i, p in enumerate(paths):
                 if os.path.exists(p):
                     try:
                         with open(p, "rb") as f:
                             img_b64 = base64.b64encode(f.read()).decode("utf-8")
+                        # Label injected BEFORE each image so the model can anchor
+                        # "IMAGE 1 is the START frame" etc. unambiguously
+                        content_blocks.append({"type": "text", "text": f"[IMAGE {i + 1}]"})
                         content_blocks.append({
                             "type": "image_url",
                             "image_url": {"url": f"data:image/jpeg;base64,{img_b64}"},
@@ -3763,9 +3775,17 @@ class Gemma4PromptGen:
             with urllib.request.urlopen(req, timeout=300) as resp:
                 result = json.loads(resp.read().decode("utf-8"))
             content = result["choices"][0]["message"]["content"]
-            # Strip any residual thinking tags
-            content = re.sub(r'<\|channel>thought\n.*?<channel\|>', '', content, flags=re.DOTALL)
-            return content.strip()
+            # Strip reasoning/thinking blocks — covers Gemma 4, Qwen 3, and generic <think> formats
+            content = re.sub(r'<\|channel\|>thought\n.*?<\|/channel\|>', '', content, flags=re.DOTALL)
+            content = re.sub(r'<\|channel>thought\n.*?<channel\|>',      '', content, flags=re.DOTALL)
+            content = re.sub(r'<think>.*?</think>',                       '', content, flags=re.DOTALL)
+            content = content.strip()
+            # If stripping thinking tokens left us with nothing, that means the model
+            # put ALL its output inside the thinking block and emitted no actual response.
+            # Return a clear retryable error rather than a silent blank.
+            if not content:
+                return "⚠️ Model returned an empty response (thinking tokens consumed all output). Re-queue to retry."
+            return content
         except urllib.error.URLError as e:
             return f"❌ llama-server connection failed: {e}"
         except Exception as e:
