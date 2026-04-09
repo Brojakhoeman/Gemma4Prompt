@@ -1509,6 +1509,245 @@ TARGET_MODELS = [
 
 
 # ══════════════════════════════════════════════════════════════════════════
+#  STYLE PRESETS
+#  Lightweight injections — short and token-efficient.
+#  Each entry: (style_instruction, dialogue_note or None)
+# ══════════════════════════════════════════════════════════════════════════
+STYLE_PRESETS = {
+    "None": None,
+
+    # ── CINEMATIC ────────────────────────────────────────────────────────
+    "🎬 Film Noir": (
+        "STYLE: Film noir. High contrast black and white or near-monochrome palette. "
+        "Hard side lighting, deep shadow filling half the frame, venetian blind shadow patterns. "
+        "Wet streets reflecting single light sources. Smoke in the air. "
+        "Camera low angle, slightly threatening. Characters silhouetted against light sources. "
+        "Every shot feels like a trap about to close.",
+        None
+    ),
+
+    "🎞 35mm Film": (
+        "STYLE: Shot on 35mm film. Visible grain especially in shadows. "
+        "Warm colour palette, slightly desaturated highlights. "
+        "Natural available light only — no artificial fill. "
+        "Shallow depth of field, anamorphic lens bokeh, slight lens breathing. "
+        "The imperfection of analogue — nothing is pixel-perfect.",
+        None
+    ),
+
+    "📺 VHS Found Footage": (
+        "STYLE: VHS found footage. Visible scan lines across the frame. "
+        "Tape distortion at edges — colour bleeding, horizontal glitch artifacts. "
+        "Handheld camera, never still, slight tracking errors. "
+        "Colour pushed toward cyan and red. Timestamp visible in corner. "
+        "The camera was not supposed to be there.",
+        None
+    ),
+
+    "🌸 K-Drama": (
+        "STYLE: Korean drama aesthetic. Soft warm practical lighting, never harsh. "
+        "Shallow depth of field on faces — skin luminous, background dissolved to bokeh. "
+        "Slow push-ins during emotional beats. Muted pastel colour grade. "
+        "Seoul locations or modern interiors. Rain used liberally. "
+        "Every frame emotionally loaded even when nothing is being said.",
+        None
+    ),
+
+    "⚡ Cyberpunk": (
+        "STYLE: Cyberpunk. Neon light in rain — magenta, cyan, acid green on wet surfaces. "
+        "High contrast, deep shadow between neon sources. "
+        "Chrome surfaces, holographic overlays, corporate signage in multiple languages. "
+        "Handheld camera at street level. Fog and steam venting from below. "
+        "The city is alive and indifferent to whoever is in it.",
+        None
+    ),
+
+    "🌈 Music Video": (
+        "STYLE: Music video. Fast editorial rhythm — cuts on beat implied by action changes. "
+        "Bold saturated colour grade, no single tone, palette shifts between shots. "
+        "Multiple camera angles on the same action described in sequence. "
+        "Performance energy — subject aware of the camera, plays to it. "
+        "Every movement is slightly exaggerated for the frame.",
+        "MUSIC VIDEO DIALOGUE RULE: Dialogue is the PRIMARY FOCUS of this style. "
+        "The subject sings or speaks directly to camera throughout. "
+        "Every beat must contain performed spoken or sung lines — minimum 3 lines of actual words in quotes. "
+        "The words are the content. The visuals serve the words. "
+        "Lip sync implied — mouth forms every syllable. "
+        "Delivery varies: whispered verse, full-voice chorus, spoken bridge. "
+        "Camera responds to each line delivery — push in on quiet lines, wide on big ones."
+    ),
+
+    # ── ANIMATION STYLES ─────────────────────────────────────────────────
+    "🖍 2D Cartoon": (
+        "STYLE: Classic 2D cartoon animation. Flat colour fills, clean black outlines. "
+        "Exaggerated expressions and proportions. "
+        "Squash and stretch physics — bodies compress on impact, stretch on speed. "
+        "Backgrounds painted and slightly stylised. "
+        "Characters move with snappy timing, not smooth realism. "
+        "Everything looks drawn, nothing looks real.",
+        None
+    ),
+
+    "🧊 3D CGI — Pixar Style": (
+        "STYLE: 3D CGI animation in the style of Pixar. "
+        "Highly detailed subsurface scattering on skin and organic surfaces. "
+        "Warm cinematic lighting with strong rim separation. "
+        "Characters have slightly stylised proportions — large eyes, expressive faces. "
+        "Environments rich in detail and texture. "
+        "Everything rendered with photographic lighting logic but clearly not real.",
+        None
+    ),
+
+    "💥 Anime — Action": (
+        "STYLE: High-energy Japanese anime action style. "
+        "Speed lines radiating from impact points. Energy auras visible around characters at peak power. "
+        "Extreme close-ups on eyes before action. Camera shakes on impact. "
+        "Colour saturation pushed — skies turn orange or purple during power-ups. "
+        "Motion blur on fast limbs. Dramatic still frame at peak moment before explosion of movement. "
+        "In the visual language of Dragon Ball Z or Naruto.",
+        None
+    ),
+
+    # ── SPECIALIST ───────────────────────────────────────────────────────
+    "🔬 Macro Hyperrealistic": (
+        "STYLE: Extreme macro photography. Subjects rendered at magnifications that reveal "
+        "detail invisible to the naked eye — skin pores, fabric fibres, surface texture, "
+        "moisture beads, fine hair, microscopic surface variation. "
+        "Extremely shallow depth of field — only a sliver of the subject in sharp focus, "
+        "everything else dissolved. Neutral or black background. "
+        "Clinical, intimate, obsessive attention to surface.",
+        None
+    ),
+
+    "🌿 Nature / No People": (
+        "STYLE: Pure nature documentary or time-lapse. NO HUMANS. NO DIALOGUE. NO VOICE. "
+        "Subject is the natural world only — landscapes, animals, weather, water, light. "
+        "Camera moves are slow and deliberate: slow tracking with wildlife, "
+        "static locked-off for time-lapse, gentle handheld following animals. "
+        "Sound is entirely natural: wind, water, animal calls, rain, insects. "
+        "No music implied. No narration. The world exists without anyone watching it.",
+        None
+    ),
+}
+
+STYLE_PRESET_KEYS = list(STYLE_PRESETS.keys())
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  INTERSTITIAL ADLIB POOLS
+#  Short contextual fillers injected between dialogue lines.
+#  Format: (text, delivery_note)
+# ══════════════════════════════════════════════════════════════════════════
+import random as _random
+
+INTERSTITIAL_ADLIBS = {
+    "normal": [
+        ("...", "trailing off, unfinished thought"),
+        ("Mm.", "soft acknowledgement, not a word"),
+        ("Yeah.", "flat, confirming"),
+        ("I know.", "quiet, certain"),
+        ("Right.", "processing, not convinced"),
+        ("Hey.", "catching attention, soft"),
+        ("Wait.", "one word, pausing everything"),
+        ("Look—", "redirecting, leaning in"),
+        ("God.", "involuntary, overwhelmed"),
+        ("Okay.", "deciding something"),
+        ("Fine.", "loaded, not actually fine"),
+        ("No.", "soft refusal, not aggressive"),
+        ("Tell me.", "one instruction, open"),
+        ("Come here.", "low, beckoning"),
+        ("Stay.", "one word, anchoring them"),
+    ],
+    "swearing": [
+        ("Fuck.", "single word exhale"),
+        ("Jesus.", "involuntary"),
+        ("Christ.", "breathed out"),
+        ("Shit.", "under the breath"),
+        ("Oh fuck.", "realising something"),
+        ("What the fuck.", "not a question, flat"),
+        ("Fuck me.", "not literal, overwhelmed"),
+        ("God fucking hell.", "losing composure"),
+        ("Fucking hell.", "British, strained"),
+        ("For fuck's sake.", "exasperated"),
+        ("Shit shit shit.", "rapid, losing control"),
+        ("Oh my fucking god.", "full volume"),
+        ("Jesus fucking Christ.", "at the absolute limit"),
+        ("Bastard.", "affectionate threat"),
+        ("You absolute—", "trailing off, can't finish"),
+    ],
+    "singing": [
+        ("Mmm-mmm-mmm.", "melodic filler, three notes descending"),
+        ("La-la-la.", "placeholder lyric, holding the melody"),
+        ("Ohhh—", "sustained vowel bridging two lines"),
+        ("Yeah-yeah-yeah.", "rhythmic filler on the beat"),
+        ("Whoa-oh-oh.", "harmony note between verses"),
+        ("Hm-hm-hm.", "closed-mouth hum keeping time"),
+        ("Oooooh.", "long sustained note resolving"),
+        ("Na-na-na.", "classic filler, nostalgic"),
+        ("Hey-hey-hey.", "call-and-response hook filler"),
+        ("Oooh baby.", "soul register, between lines"),
+    ],
+    "asmr": [
+        ("*slow exhale through the nose*", "breath sound, close mic"),
+        ("*lips parting softly*", "barely audible"),
+        ("*fingertips tapping — one, two, three*", "deliberate rhythm"),
+        ("*fabric rustling against skin*", "very close, very soft"),
+        ("*swallowing, barely audible*", "intimate close-up sound"),
+        ("*breath held for two beats, then released*", "suspension"),
+        ("*nails dragging lightly across paper*", "gentle scratch"),
+        ("*a single soft tap on the microphone*", "intentional"),
+        ("*whispering the next word before speaking it*", "layered"),
+        ("*long slow inhale*", "centering, deliberate"),
+    ],
+    "intimate": [
+        ("Please.", "one word, everything in it"),
+        ("I—", "starting, stopping"),
+        ("Don't.", "not aggressive, almost asking"),
+        ("Stay with me.", "low, grounding"),
+        ("Look at me.", "soft instruction"),
+        ("I've got you.", "steady, reassuring"),
+        ("It's okay.", "repeated, believing it"),
+        ("Just breathe.", "one hand on chest"),
+        ("I'm here.", "nothing else needed"),
+        ("Don't let go.", "grip tightening"),
+    ],
+    "argument": [
+        ("No, listen—", "cutting in"),
+        ("That's not—", "stopping, reforming"),
+        ("You don't understand.", "flat, defeated"),
+        ("Let me finish.", "sharp"),
+        ("STOP.", "one word, full stop"),
+        ("Fine.", "walking away energy"),
+        ("Are you serious right now.", "not a question"),
+        ("I can't—", "trailing off"),
+        ("Don't.", "warning"),
+        ("You always—", "giving up mid-accusation"),
+    ],
+}
+
+def _pick_interstitial(context: str, seed: int = 0) -> str:
+    """Pick a contextual adlib based on scene context keywords."""
+    rng = _random.Random(seed if seed != 0 else None)
+    ctx = context.lower()
+
+    if any(w in ctx for w in ["asmr", "whisper", "tingle", "soft spoken"]):
+        pool = INTERSTITIAL_ADLIBS["asmr"]
+    elif any(w in ctx for w in ["sing", "song", "lyrics", "melody", "chorus"]):
+        pool = INTERSTITIAL_ADLIBS["singing"]
+    elif any(w in ctx for w in ["argue", "argument", "fight", "angry", "yell", "shout"]):
+        pool = INTERSTITIAL_ADLIBS["argument"]
+    elif any(w in ctx for w in ["fuck", "shit", "damn", "ass", "cock", "pussy", "sex", "naked"]):
+        pool = INTERSTITIAL_ADLIBS["swearing"]
+    elif any(w in ctx for w in ["love", "hold", "close", "gentle", "tender", "kiss"]):
+        pool = INTERSTITIAL_ADLIBS["intimate"]
+    else:
+        pool = INTERSTITIAL_ADLIBS["normal"]
+
+    text, delivery = rng.choice(pool)
+    return f'interstitial beat: {text} — {delivery}'
+
+
+# ══════════════════════════════════════════════════════════════════════════
 #  SYSTEM PROMPTS  — one per target model
 # ══════════════════════════════════════════════════════════════════════════
 
@@ -1874,7 +2113,7 @@ def _scan_models_folder() -> list:
         except Exception:
             pass
     try:
-        ggufs = sorted([f for f in os.listdir(MODELS_DIR) if f.lower().endswith(".gguf")])
+        ggufs = sorted([f for f in os.listdir(MODELS_DIR) if f.lower().endswith(".gguf") and "mmproj" not in f.lower()])
         return ggufs if ggufs else ["No GGUFs found in C:\\models\\"]
     except Exception:
         return ["No GGUFs found in C:\\models\\"]
@@ -1896,6 +2135,8 @@ class Gemma4PromptGen:
     """
 
     _last_prompt = ""
+    _last_neg     = ""
+    _last_qc      = ""
     _llama_process = None
 
     @classmethod
@@ -1928,11 +2169,77 @@ class Gemma4PromptGen:
                         "placeholder": "Describe the scene — characters, action, mood, position, clothing...",
                     },
                 ),
-                "environment": (env_keys, {
+                # ── MOST USED ──────────────────────────────────────────────
+                "🌍 environment": (env_keys, {
                     "default": "None — LLM decides",
                     "tooltip": "Location preset — injects rich location, lighting and sound context. Video models use all three layers; image models use location + lighting.",
                 }),
-                "animation_preset": (
+                "🎬 content_gate": (
+                    ["Auto", "SFW", "NSFW"],
+                    {
+                        "default": "Auto",
+                        "tooltip": (
+                            "Content gate — hard override for how ambiguous language is interpreted.\n"
+                            "Auto: context decides. NSFW keywords → explicit, clean keywords → clean.\n"
+                            "SFW: forces the cleanest possible interpretation of everything. "
+                            "\"woman rubs her pussy\" → she is petting a cat. "
+                            "No sexual content regardless of wording. Wildcards draw from SFW pools only.\n"
+                            "NSFW: forces explicit interpretation of everything. "
+                            "\"woman strokes her cat\" → she is not stroking a cat. "
+                            "Ambiguous language is always read as sexual. Wildcards go filthy."
+                        ),
+                    },
+                ),
+                "⚡ energy": (
+                    ["Auto", "Fun", "Intense", "Extreme"],
+                    {
+                        "default": "Intense",
+                        "tooltip": (
+                            "Scene energy dial. "
+                            "Auto: reads your scene and picks — comedy gets Fun, action gets Extreme, romance gets Intense, etc. "
+                            "Fun: light, playful, loose camera, laughing dialogue, reactions exaggerated. "
+                            "Intense: focused, charged, tight camera, direct dialogue, stakes feel real. "
+                            "Extreme: maximum everything — CAPS shouting at peak moments, physical extremity, no restraint, profanity where it fits. "
+                            "Context-aware: reads your scene type and responds accordingly."
+                        ),
+                    },
+                ),
+                "🖼️ use_image": ("BOOLEAN", {
+                    "default": False,
+                    "tooltip": (
+                        "Enable image grounding — activates vision input for the model.\n"
+                        "• first_frame only: standard I2V grounding (describe what to animate).\n"
+                        "• first_frame + last_frame: bracketed mode — model writes the journey between them.\n"
+                        "• video_frames: video continuation mode — model samples frames and writes a prompt "
+                        "that continues from where the clip ends.\n"
+                        "Requires at least one image pin connected and mmproj GGUF alongside the model."
+                    ),
+                }),
+                # ── SCENE STYLE ────────────────────────────────────────────
+                "💬 dialogue": (
+                    ["Off", "Auto", "More", "Unleashed"],
+                    {
+                        "default": "Off",
+                        "tooltip": (
+                            "Dialogue density. Off: none. "
+                            "Auto: injected when contextually appropriate. "
+                            "More: required every beat, 3-4 lines minimum. "
+                            "Unleashed: dialogue IS the video — every sentence has spoken words, characters talk the entire runtime."
+                        ),
+                    },
+                ),
+                "🎨 style_preset": (
+                    STYLE_PRESET_KEYS,
+                    {
+                        "default": "None",
+                        "tooltip": (
+                            "Visual style preset — shifts colour palette, camera language, and rendering aesthetic. "
+                            "Film Noir, Cyberpunk, VHS, K-Drama, Music Video, 2D Cartoon, 3D CGI, Anime Action, "
+                            "Macro Hyperrealistic, Nature/No People. Independent of animation and environment."
+                        ),
+                    },
+                ),
+                "🎭 animation_preset": (
                     list(ANIMATION_PRESETS.keys()),
                     {
                         "default": "None",
@@ -1943,20 +2250,19 @@ class Gemma4PromptGen:
                         ),
                     },
                 ),
-                "dialogue": ("BOOLEAN", {
-                    "default": False,
-                    "tooltip": "Force spoken dialogue into the prompt — video models only. Embedded naturally in the paragraph.",
-                }),
-                "use_image": ("BOOLEAN", {
+                # ── LESS USED ──────────────────────────────────────────────
+                "🎲 wildcards": ("BOOLEAN", {
                     "default": False,
                     "tooltip": (
-                        "Enable image grounding — sends your wired IMAGE to the model as context. "
-                        "For video models: I2V grounding (describe what to animate). "
-                        "For image models: I2I reference (match style/subject). "
-                        "Requires IMAGE pin connected."
+                        "Enable wildcard mode — detects the type of scene in your instruction and "
+                        "assembles a fully randomised scene in that universe (vehicles, sports, animation, "
+                        "fantasy, sci-fi, horror, historical, food, music, animals, nature, SFW person, or NSFW). "
+                        "Blank input = full chaos, any universe. "
+                        "Overrides whatever is typed in the instruction field. "
+                        "Use seed to lock a result."
                     ),
                 }),
-                "screenplay_mode": ("BOOLEAN", {
+                "📝 screenplay_mode": ("BOOLEAN", {
                     "default": False,
                     "tooltip": (
                         "LTX 2.3 only. Instead of one flowing paragraph, generates a structured "
@@ -1967,10 +2273,29 @@ class Gemma4PromptGen:
                 }),
             },
             "optional": {
-                "image": ("IMAGE", {
-                    "tooltip": "Reference or start frame image. Read when use_image is ON.",
+                # ── IMAGE / VIDEO INPUTS ───────────────────────────────────
+                "first_frame": ("IMAGE", {
+                    "tooltip": (
+                        "Start frame / reference image. I2V grounding when used alone. "
+                        "Pair with last_frame to generate a start→end bridging prompt."
+                    ),
                 }),
-                "character": ("STRING", {
+                "last_frame": ("IMAGE", {
+                    "tooltip": (
+                        "End frame — pair with first_frame to activate bracketed I2V mode. "
+                        "The model sees both images and writes a prompt describing the journey between them."
+                    ),
+                }),
+                "video_frames": ("IMAGE", {
+                    "tooltip": (
+                        "Video frame batch (IMAGE tensor with B>1). "
+                        "The node samples video_sample_count frames evenly across the batch and "
+                        "sends them to the model as visual context. "
+                        "Use to generate a prompt that continues from where the video ends."
+                    ),
+                }),
+                # ── FREQUENTLY TUNED ──────────────────────────────────────
+                "👤 character": ("STRING", {
                     "multiline": False,
                     "default": "",
                     "tooltip": (
@@ -1979,25 +2304,19 @@ class Gemma4PromptGen:
                         "Used exactly as written."
                     ),
                 }),
-                "frame_count": ("INT", {
+                "🎞️ frame_count": ("INT", {
                     "default": 257, "min": 1, "max": 2000, "step": 1,
                     "tooltip": "LTX/Wan frame count @ 25fps. 257 = ~10s. Only used for video models.",
                 }),
-                "llama_server_url": (
-                    "STRING",
-                    {
-                        "default": "http://127.0.0.1:8080",
-                        "tooltip": "llama-server base URL. Default: http://127.0.0.1:8080",
-                    },
-                ),
-                "gguf_model": (
-                    _scan_models_folder(),
-                    {
-                        "default": _scan_models_folder()[0],
-                        "tooltip": "GGUF model from C:\\models\\. Add files there and restart ComfyUI to refresh.",
-                    },
-                ),
-                "pov_mode": (
+                "📹 video_sample_count": ("INT", {
+                    "default": 6, "min": 0, "max": 20, "step": 1,
+                    "tooltip": (
+                        "How many frames to sample from video_frames. "
+                        "0 = use all frames (up to 20). 6 is a good default — covers the arc "
+                        "without blowing the vision context. Frames are picked evenly across the full batch."
+                    ),
+                }),
+                "🎯 pov_mode": (
                     ["Off", "POV Female", "POV Male"],
                     {
                         "default": "Off",
@@ -2009,23 +2328,104 @@ class Gemma4PromptGen:
                         ),
                     },
                 ),
-                "seed": ("INT", {
+                "📏 word_target": ("INT", {
+                    "default": 0, "min": 0, "max": 1000, "step": 25,
+                    "tooltip": "Target word count for the output prompt. 0 = auto (model decides). "
+                               "Set to e.g. 200, 300, 500 to enforce a specific length. "
+                               "Max tokens are scaled automatically to fit.",
+                }),
+                "🌡️ temperature": (
+                    ["Focused (0.7)", "Default (1.0)", "Creative (1.2)", "Unhinged (1.4)"],
+                    {
+                        "default": "Default (1.0)",
+                        "tooltip": (
+                            "LLM sampling temperature — controls output randomness and creativity.\n"
+                            "Focused (0.7): consistent, structured, less drift — good for booru tags and tight character descriptions.\n"
+                            "Default (1.0): balanced — creative but coherent. Works for everything.\n"
+                            "Creative (1.2): more unexpected word choices, richer variation, occasional weirdness.\n"
+                            "Unhinged (1.4): the model goes wherever it wants — surprising results, occasional garbage. Pairs well with auto_retry."
+                        ),
+                    },
+                ),
+                "🔁 auto_retry": ("BOOLEAN", {
+                    "default": False,
+                    "tooltip": (
+                        "Quality check + auto-retry. Runs fast string checks after generation: "
+                        "dialogue density (dialogue mode), CAPS presence (Extreme energy), "
+                        "minimum length vs frame count, preamble/leak contamination. "
+                        "Fires one retry on failure only — no delay on passing outputs. "
+                        "Retry uses boosted temperature for genuine variation. "
+                        "Better of the two results is kept."
+                    ),
+                }),
+                "🌱 seed": ("INT", {
                     "default": 0, "min": 0, "max": 2**31 - 1, "step": 1,
                     "tooltip": "Seed for Random environment pick. 0 = different every run.",
                 }),
+                # ── BACKEND CONFIG ─────────────────────────────────────────
+                "🖥️ llama_server_url": (
+                    "STRING",
+                    {
+                        "default": "http://127.0.0.1:8080",
+                        "tooltip": "llama-server base URL. Default: http://127.0.0.1:8080",
+                    },
+                ),
+                "🧠 gguf_model": (
+                    _scan_models_folder(),
+                    {
+                        "default": _scan_models_folder()[0],
+                        "tooltip": "GGUF model from C:\\models\\. Add files there and restart ComfyUI to refresh.",
+                    },
+                ),
             },
         }
 
-    RETURN_TYPES = ("STRING", "STRING",)
-    RETURN_NAMES = ("preview_prompt", "send_prompt",)
+    RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING",)
+    RETURN_NAMES = ("preview_prompt", "send_prompt", "neg_prompt", "qc_report",)
     FUNCTION = "execute"
     CATEGORY = "LoRa-Daddy/Gemma4"
     OUTPUT_NODE = True
 
-    def execute(self, mode, target_model, instruction, environment, animation_preset,
-                dialogue, use_image, screenplay_mode=False, image=None, character="",
-                frame_count=257, llama_server_url="http://127.0.0.1:8080",
-                gguf_model="", pov_mode="Off", seed=0):
+    def execute(self, **kwargs):
+        # ── Resolve all inputs from kwargs ───────────────────────────────
+        # INPUT_TYPES uses emoji-prefixed keys (e.g. "🌍 environment") which are
+        # valid dict keys but cannot be Python kwarg names.  ComfyUI passes them
+        # through **kwargs, so we normalise here by stripping any leading emoji /
+        # non-ASCII prefix up to and including the first space.
+        def _kw(primary, *aliases, default=None):
+            """Return the first matching value from kwargs, trying primary key,
+            then bare snake_case fallback, then aliases."""
+            for key in (primary, *aliases):
+                if key in kwargs:
+                    return kwargs[key]
+            return default
+
+        mode              = _kw("mode")
+        target_model      = _kw("target_model")
+        instruction       = _kw("instruction", default="")
+        environment       = _kw("🌍 environment",    "environment",       default="None — LLM decides")
+        content_gate      = _kw("🎬 content_gate",   "content_gate",      default="Auto")
+        energy            = _kw("⚡ energy",          "energy",            default="Intense")
+        use_image         = _kw("🖼️ use_image",       "use_image",         default=False)
+        dialogue          = _kw("💬 dialogue",        "dialogue",          default="Off")
+        style_preset      = _kw("🎨 style_preset",    "style_preset",      default="None")
+        animation_preset  = _kw("🎭 animation_preset","animation_preset",  default="None")
+        wildcards         = _kw("🎲 wildcards",       "wildcards",         default=False)
+        screenplay_mode   = _kw("📝 screenplay_mode", "screenplay_mode",   default=False)
+        # optional inputs
+        first_frame       = _kw("first_frame",                             default=None)
+        last_frame        = _kw("last_frame",                              default=None)
+        video_frames      = _kw("video_frames",                            default=None)
+        character         = _kw("👤 character",       "character",         default="")
+        frame_count       = _kw("🎞️ frame_count",     "frame_count",       default=257)
+        video_sample_count= _kw("📹 video_sample_count","video_sample_count",default=6)
+        pov_mode          = _kw("🎯 pov_mode",        "pov_mode",          default="Off")
+        word_target       = _kw("📏 word_target",     "word_target",       default=0)
+        temperature       = _kw("🌡️ temperature",     "temperature",       default="Default (1.0)")
+        auto_retry        = _kw("🔁 auto_retry",      "auto_retry",        default=False)
+        seed              = _kw("🌱 seed",             "seed",              default=0)
+        llama_server_url  = _kw("🖥️ llama_server_url","llama_server_url",  default="http://127.0.0.1:8080")
+        gguf_model        = _kw("🧠 gguf_model",      "gguf_model",        default="")
 
         if not llama_server_url or not llama_server_url.strip():
             llama_server_url = "http://127.0.0.1:8080"
@@ -2039,7 +2439,7 @@ class Gemma4PromptGen:
             # fallback — first gguf in C:\models
             found = [f for f in os.listdir(models_dir) if f.endswith(".gguf")] if os.path.isdir(models_dir) else []
             if not found:
-                return ("❌ No GGUF files found in C:\\models\\. Add a GGUF and restart ComfyUI.", "",)
+                return ("❌ No GGUF files found in C:\\models\\. Add a GGUF and restart ComfyUI.", "", "", "",)
             model_path = os.path.join(models_dir, found[0])
 
         # ── PREVIEW MODE ────────────────────────────────────────────────
@@ -2060,49 +2460,179 @@ class Gemma4PromptGen:
                 pass
 
             # Store use_image so _ensure_llama_running can access it
-            self._use_image = use_image
+            self._use_image = use_image and (
+                first_frame is not None or
+                last_frame is not None or
+                video_frames is not None
+            )
 
             # Auto-find or install llama-server
             llama_exe = self._find_or_install_llama()
             if llama_exe.startswith("❌"):
-                return (llama_exe, "",)
+                return (llama_exe, "", "", "",)
 
             # Boot llama-server
             boot_status = self._ensure_llama_running(llama_server_url, llama_exe, model_path)
             print(f"[Gemma4PromptGen] {boot_status}")
             if boot_status.startswith("❌"):
-                return (boot_status, "",)
+                return (boot_status, "", "", "",)
 
-            # Convert image tensor to temp file if enabled
-            image_path = None
-            if use_image and image is not None:
+            # ── Image grounding — build list of (path, role) tuples ─────────
+            image_paths  = []   # list of temp file paths sent to LLM
+            image_mode   = "none"  # "single" | "bracket" | "video"
+
+            if use_image:
+                # ── Priority 1: video_frames batch ───────────────────────────
+                if video_frames is not None and video_frames.ndim == 4 and video_frames.shape[0] > 1:
+                    total_frames = video_frames.shape[0]
+                    n_sample = video_sample_count if video_sample_count > 0 else min(total_frames, 20)
+                    n_sample = min(n_sample, total_frames, 20)  # hard cap at 20
+
+                    if n_sample <= 1:
+                        indices = [0]
+                    else:
+                        # Evenly spaced across full batch, always include last frame
+                        step = (total_frames - 1) / (n_sample - 1)
+                        indices = [round(i * step) for i in range(n_sample)]
+                        indices = sorted(set(max(0, min(total_frames - 1, idx)) for idx in indices))
+
+                    print(f"[Gemma4PromptGen] Video mode: {total_frames} total frames, "
+                          f"sampling {len(indices)} at positions {indices}")
+
+                    for idx in indices:
+                        try:
+                            frame_tensor = video_frames[idx].unsqueeze(0)  # (1,H,W,C)
+                            path = self._tensor_to_tempfile(frame_tensor)
+                            image_paths.append(path)
+                        except Exception as e:
+                            print(f"[Gemma4PromptGen] Frame {idx} encode failed: {e}")
+
+                    image_mode = "video"
+
+                # ── Priority 2: bracketed first + last frame ──────────────────
+                elif first_frame is not None and last_frame is not None:
+                    try:
+                        image_paths.append(self._tensor_to_tempfile(first_frame))
+                    except Exception as e:
+                        print(f"[Gemma4PromptGen] first_frame encode failed: {e}")
+                    try:
+                        image_paths.append(self._tensor_to_tempfile(last_frame))
+                    except Exception as e:
+                        print(f"[Gemma4PromptGen] last_frame encode failed: {e}")
+                    image_mode = "bracket"
+
+                # ── Priority 3: single first_frame (standard I2V) ─────────────
+                elif first_frame is not None:
+                    try:
+                        image_paths.append(self._tensor_to_tempfile(first_frame))
+                        image_mode = "single"
+                    except Exception as e:
+                        print(f"[Gemma4PromptGen] first_frame encode failed: {e}")
+
+                # Single video_frames tensor with only 1 frame → treat as first_frame
+                elif video_frames is not None and video_frames.shape[0] == 1:
+                    try:
+                        image_paths.append(self._tensor_to_tempfile(video_frames))
+                        image_mode = "single"
+                    except Exception as e:
+                        print(f"[Gemma4PromptGen] video_frames(1) encode failed: {e}")
+
+            print(f"[Gemma4PromptGen] Image mode: {image_mode}, paths: {len(image_paths)}")
+
+            # Wildcard override — replace instruction with random assembled scene
+            # Passes original instruction for content detection + anchoring
+            if wildcards:
                 try:
-                    image_path = self._tensor_to_tempfile(image)
+                    import sys as _sys
+                    import os as _os
+                    _node_dir = _os.path.dirname(_os.path.abspath(__file__))
+                    if _node_dir not in _sys.path:
+                        _sys.path.insert(0, _node_dir)
+                    from wildcard_suite_gemma4 import build_wildcard_injection
+                    instruction = build_wildcard_injection(
+                        seed=seed,
+                        energy=energy,
+                        instruction=instruction,
+                        content_gate=content_gate,
+                    )
+                    print(f'[Gemma4PromptGen] Wildcards ON — injected:\n{instruction}')
                 except Exception as e:
-                    print(f"[Gemma4PromptGen] Image conversion failed: {e}")
+                    print(f'[Gemma4PromptGen] Wildcard error: {e} — using original instruction')
+
+            # Resolve temperature float from widget string
+            _temp_map = {
+                "Focused (0.7)":  0.7,
+                "Default (1.0)":  1.0,
+                "Creative (1.2)": 1.2,
+                "Unhinged (1.4)": 1.4,
+            }
+            _temperature_float = _temp_map.get(temperature, 1.0)
 
             # Build message
             system_prompt = get_system_prompt(target_model, screenplay_mode, animation_preset)
             combined = self._build_message(
                 instruction, system_prompt, target_model, environment,
-                frame_count, dialogue, character, seed, image_path,
-                screenplay_mode, pov_mode, animation_preset
+                frame_count, dialogue, character, seed, image_paths,
+                screenplay_mode, pov_mode, animation_preset, energy,
+                style_preset, word_target, content_gate=content_gate,
+                image_mode=image_mode
             )
 
             # Generate
-            prompt = self._call_llama(combined, system_prompt, llama_server_url, image_path)
+            neg_prompt = ""   # will be populated by _clean_output if model outputs NEGATIVE: block
+            prompt = self._call_llama(combined, system_prompt, llama_server_url, image_paths,
+                                      frame_count, target_model, word_target,
+                                      temperature_override=_temperature_float)
 
-            # Clean up temp image
-            if image_path and os.path.exists(image_path):
-                try:
-                    os.unlink(image_path)
-                except Exception:
-                    pass
+            # Clean up temp images
+            for p in image_paths:
+                if p and os.path.exists(p):
+                    try:
+                        os.unlink(p)
+                    except Exception:
+                        pass
 
-            prompt = self._clean_output(prompt, screenplay_mode=(screenplay_mode and "LTX" in target_model))
+            prompt, neg_prompt = self._clean_output(prompt, screenplay_mode=(screenplay_mode and "LTX" in target_model))
 
+            # ── Quality check + optional auto-retry ──────────────────────
+            qc_report = ""
             if not prompt.startswith("❌") and not prompt.startswith("⚠️"):
+                qc_passed, qc_report, qc_score = self._check_prompt_quality(
+                    prompt, dialogue, energy, frame_count, target_model
+                )
+                print(f"[Gemma4PromptGen] {qc_report}")
+
+                if not qc_passed and auto_retry:
+                    print(f"[Gemma4PromptGen] QC failed ({qc_score}/100) — firing retry with boosted temperature...")
+                    retry_prompt = self._call_llama(
+                        combined, system_prompt, llama_server_url, None,
+                        frame_count, target_model, word_target,
+                        temperature_override=min(1.4, _temperature_float + 0.2)
+                    )
+                    retry_prompt, retry_neg = self._clean_output(
+                        retry_prompt,
+                        screenplay_mode=(screenplay_mode and "LTX" in target_model)
+                    )
+                    if not retry_prompt.startswith("❌") and not retry_prompt.startswith("⚠️"):
+                        _, retry_report, retry_score = self._check_prompt_quality(
+                            retry_prompt, dialogue, energy, frame_count, target_model
+                        )
+                        print(f"[Gemma4PromptGen] Retry {retry_report}")
+                        if retry_score >= qc_score:
+                            prompt = retry_prompt
+                            neg_prompt = retry_neg
+                            qc_report  = retry_report
+                            print(f"[Gemma4PromptGen] Retry kept ({retry_score} >= {qc_score})")
+                        else:
+                            print(f"[Gemma4PromptGen] Original kept (retry {retry_score} < {qc_score})")
+                    else:
+                        print(f"[Gemma4PromptGen] Retry errored — keeping original")
+
                 Gemma4PromptGen._last_prompt = prompt
+                Gemma4PromptGen._last_neg    = neg_prompt
+                Gemma4PromptGen._last_qc     = qc_report
+            else:
+                print(f"[Gemma4PromptGen] Generation error — QC skipped")
 
             print(f"\n{'='*60}")
             print(f"GEMMA4 PROMPT GEN — {target_model}")
@@ -2143,16 +2673,16 @@ class Gemma4PromptGen:
                         pass
             threading.Thread(target=_delayed_interrupt, daemon=True).start()
 
-            return (prompt, "",)
+            return (prompt, "", neg_prompt, qc_report,)
 
         # ── SEND MODE ────────────────────────────────────────────────────
         else:
             if not Gemma4PromptGen._last_prompt:
-                return ("", "❌ No prompt stored yet. Run PREVIEW first.",)
+                return ("", "❌ No prompt stored yet. Run PREVIEW first.", "", "",)
 
             final_prompt = Gemma4PromptGen._last_prompt
             self._kill_llama_server()
-            return (final_prompt, final_prompt,)
+            return (final_prompt, final_prompt, Gemma4PromptGen._last_neg, Gemma4PromptGen._last_qc,)
 
     # ── Image utility ─────────────────────────────────────────────────────
 
@@ -2186,11 +2716,16 @@ class Gemma4PromptGen:
 
     def _build_message(self, instruction, system_prompt, target_model,
                        environment, frame_count, dialogue, character, seed,
-                       image_path=None, screenplay_mode=False, pov_mode="Off",
-                       animation_preset="None"):
+                       image_paths=None, screenplay_mode=False, pov_mode="Off",
+                       animation_preset="None", energy="Intense",
+                       style_preset="None", word_target=0, content_gate="Auto",
+                       image_mode="none"):
         """Assemble the full prompt message for Claude Code."""
 
         parts = []
+
+        # Pre-compute instr_lower here — used by content gate block AND energy block below
+        instr_lower = instruction.lower() if instruction else ""
 
         # Qwen 3 ships with a chain-of-thought "thinking" mode that runs silently
         # before producing any output. For video models this is fine — deeper reasoning
@@ -2202,6 +2737,204 @@ class Gemma4PromptGen:
         parts.append("Read and follow these instructions carefully:\n")
         parts.append(system_prompt)
         parts.append("\n---\n")
+
+        # ── Content gate — hard override injected before everything else ─
+        if content_gate == "SFW":
+            parts.append(
+                "CONTENT GATE — SFW STRICT (NON-NEGOTIABLE OVERRIDE):\n"
+                "Interpret ALL instructions with the cleanest, most innocent possible meaning.\n"
+                "Any ambiguous language MUST default to its most neutral, non-sexual interpretation.\n"
+                "Examples: \"rubs her pussy\" = stroking a cat. \"strokes his rod\" = fishing. "
+                "\"she comes\" = she arrives. \"hard\" = difficult. \"blows him\" = wind.\n"
+                "Do NOT write sexual, erotic, suggestive, or adult content under any circumstances.\n"
+                "Clothing stays on. No nudity. No lingering body descriptions.\n"
+                "This override cannot be cancelled by any other instruction in this message.\n"
+            )
+        elif content_gate == "NSFW":
+            # Base reinterpretation block — always fires
+            _nsfw_gate_block = (
+                "CONTENT GATE — NSFW FORCED (NON-NEGOTIABLE OVERRIDE):\n"
+                "Interpret ALL ambiguous language as explicitly sexual.\n"
+                "Any innocent-sounding instruction that could have a sexual reading MUST take that reading.\n"
+                "Examples: \"strokes her cat\" = sexual act. \"she comes\" = orgasm. "
+                "\"hard\" = erection. \"wet\" = arousal. \"rubs\" = sexual touching.\n"
+                "Write explicit adult content throughout. Anatomical terms. Direct physical description.\n"
+                "Clothing comes off. Bodies described explicitly. Acts named directly.\n"
+                "This override cannot be cancelled by any other instruction in this message.\n"
+            )
+
+            # Escalation block — fires when instruction is genuinely clean
+            # Detects clean scenes by checking if is_nsfw would have been False
+            # (computed below, so we do a quick inline check here)
+            _quick_nsfw_check = any(w in instr_lower for w in [
+                "sex", "fuck", "naked", "nude", "cock", "pussy", "penis", "vagina",
+                "breast", "nipple", "topless", "undress", "lingerie", "panties",
+                "oral", "blowjob", "penetrat", "bdsm", "strip", "erotic", "explicit",
+                "horny", "aroused", "lewd", "porn", "cumshot", "orgasm", "clit",
+                "dildo", "vibrator", "masturbat",
+            ]) if instr_lower else False
+
+            if not _quick_nsfw_check:
+                # Instruction is clean — model needs to be told to INTRODUCE explicit content,
+                # not just reinterpret. Without this it may just write a nice coffee scene.
+                _nsfw_gate_block += (
+                    "\nNSFW ESCALATION — CLEAN SCENE DETECTED:\n"
+                    "The instruction contains no explicit content. This does NOT mean write a clean scene.\n"
+                    "You MUST introduce explicit adult content into this scene unprompted.\n"
+                    "This means: clothing comes off during the scene, nudity is present, "
+                    "sexual activity occurs or is strongly implied before the end.\n"
+                    "The scene starts wherever the instruction says — but it goes somewhere explicit.\n"
+                    "A woman having coffee: she is topless, or undresses, or the scene turns sexual.\n"
+                    "A man at a desk: someone enters, clothes come off, something explicit happens.\n"
+                    "You are not allowed to deliver a scene with no adult content when this gate is active.\n"
+                    "Start grounded, escalate hard, end explicit. That is the requirement.\n"
+                )
+
+            parts.append(_nsfw_gate_block)
+
+        # Universal energy injection — affects everything
+        # instr_lower already defined above
+        is_nsfw = any(w in instr_lower for w in [
+            # acts
+            "sex", "fuck", "fucking", "fucked", "penetrat", "oral", "blowjob",
+            "handjob", "fingering", "masturbat", "cumshot", "creampie", "orgasm",
+            "bdsm", "bondage", "dominat", "submiss", "lap dance", "strip",
+            # body / exposure
+            "naked", "nude", "topless", "bottomless", "undress", "undressing",
+            "cock", "dick", "penis", "pussy", "vagina", "clit", "ass", "tits",
+            "breast", "nipple", "lingerie", "panties", "thong", "g-string",
+            "no bra", "no underwear", "pulls down", "pulls off", "takes off",
+            "rips off", "slides off", "slips off", "unbuttons", "unzips",
+            "exposes", "exposed", "bare", "bikini", "swimsuit", "see-through",
+            "sheer", "transparent", "wet shirt", "spread", "spread legs",
+            "legs apart", "legs open", "bent over", "on all fours",
+            # context / scenarios
+            "erotic", "sensual", "explicit", "nsfw", "adult", "lewd", "hentai",
+            "porn", "onlyfans", "horny", "aroused", "seduct", "tease", "teasing",
+        ])
+        is_action = any(w in instr_lower for w in [
+            "fight", "chase", "explosion", "battle", "attack", "run", "crash",
+        ])
+        is_comedy = any(w in instr_lower for w in [
+            "funny", "comedy", "laugh", "joke", "silly", "spongebob", "looney",
+        ])
+        is_romantic = any(w in instr_lower for w in [
+            "love", "romantic", "kiss", "tender", "gentle", "hold", "embrace",
+        ])
+
+        # ── Content gate override ─────────────────────────────────────────
+        # Hard-wire is_nsfw based on gate regardless of what was detected above
+        if content_gate == "NSFW":
+            is_nsfw = True    # everything is dirty
+        elif content_gate == "SFW":
+            is_nsfw = False   # nothing is dirty
+
+        if energy == "Fun":
+            if is_comedy:
+                parts.append(
+                    "ENERGY — FUN: Lean into the absurdity. Reactions exaggerated to cartoon levels. "
+                    "Dialogue bouncy, quick, full of laughs. Camera loose and playful. "
+                    "Nothing is serious. Everything is slightly ridiculous.\n"
+                )
+            elif is_nsfw:
+                parts.append(
+                    "ENERGY — FUN: Keep it light and flirty. Laughing during the scene is correct. "
+                    "Dialogue teasing and playful, not intense. "
+                    "Camera relaxed, not aggressive. Bodies enjoying themselves without drama.\n"
+                )
+            else:
+                parts.append(
+                    "ENERGY — FUN: Light, warm, loose. Dialogue quick and natural with laughs. "
+                    "Camera unhurried. The scene feels easy and enjoyable. "
+                    "No heavy stakes. Just the moment.\n"
+                )
+        elif energy == "Auto":
+            # Context-driven: pick the right register silently
+            if is_comedy:
+                parts.append(
+                    "ENERGY — FUN: Lean into the absurdity. Reactions exaggerated to cartoon levels. "
+                    "Dialogue bouncy, quick, full of laughs. Camera loose and playful. "
+                    "Nothing is serious. Everything is slightly ridiculous.\n"
+                )
+            elif is_action:
+                parts.append(
+                    "ENERGY — EXTREME: Full chaos. Everything happening at once. "
+                    "SHOUTED dialogue cutting through noise. "
+                    "Camera shaking, cutting fast, never wide when close will do. "
+                    "Sound overwhelming — named, layered, physical. "
+                    "No moment of stillness. Maximum kinetic energy throughout.\n"
+                )
+            elif is_romantic:
+                parts.append(
+                    "ENERGY — INTENSE: Charged and close. Every look loaded. "
+                    "Dialogue careful, deliberate — words chosen slowly. "
+                    "Camera tight on faces and hands. The tension is the story.\n"
+                )
+            elif is_nsfw:
+                parts.append(
+                    "ENERGY — INTENSE: Focused and physical. Every detail deliberate. "
+                    "Dialogue direct and grounded. Camera purposeful.\n"
+                )
+            # else: pure Intense default, no injection needed
+        elif energy == "Extreme":
+            if is_nsfw:
+                parts.append(
+                    "ENERGY — EXTREME: Maximum physical and vocal intensity. "
+                    "Dialogue SHOUTED IN CAPS where appropriate. Profanity throughout. "
+                    "Bodies pushed to their limit — no restraint, no softening. "
+                    "Camera aggressive — extreme close-ups, no gentle framing. "
+                    "Audio at full volume: every sound source named and loud.\n"
+                )
+            elif is_action:
+                parts.append(
+                    "ENERGY — EXTREME: Full chaos. Everything happening at once. "
+                    "SHOUTED dialogue cutting through noise. "
+                    "Camera shaking, cutting fast, never wide when close will do. "
+                    "Sound overwhelming — named, layered, physical. "
+                    "No moment of stillness. Maximum kinetic energy throughout.\n"
+                )
+            elif is_romantic:
+                parts.append(
+                    "ENERGY — EXTREME: Desperate and overwhelming. "
+                    "Dialogue broken, breathless, declarations that can't be held back. "
+                    "Physical contact urgent — gripping, pulling, not letting go. "
+                    "Camera tight on faces. The emotion is the scene. "
+                    "Nothing held back.\n"
+                )
+            elif is_comedy:
+                parts.append(
+                    "ENERGY — EXTREME: Completely unhinged. "
+                    "Every reaction ten times bigger than it needs to be. "
+                    "SHOUTED dialogue. Physical comedy at maximum scale. "
+                    "Camera can't keep up. Total chaos played completely straight.\n"
+                )
+            else:
+                parts.append(
+                    "ENERGY — EXTREME: Push everything to its limit. "
+                    "Dialogue direct, loud where it needs to be — CAPS for peak moments. "
+                    "Camera tight and aggressive. Physical actions at maximum intensity. "
+                    "No restraint anywhere in the prompt.\n"
+                )
+        # Intense is default — no injection needed, normal behaviour
+
+        # Dialogue active flag — used here and throughout the rest of the message builder
+        _dialogue_active = dialogue in ("Auto", "More", "Unleashed")
+        _dialogue_mode   = dialogue
+
+        # Style preset injection
+        if style_preset and style_preset != "None":
+            preset_data = STYLE_PRESETS.get(style_preset)
+            if preset_data:
+                style_instr, dialogue_note = preset_data
+                parts.append(style_instr + "\n")
+                if dialogue_note and _dialogue_active:
+                    parts.append(dialogue_note + "\n")
+                if "Nature" in style_preset:
+                    parts.append(
+                        "NATURE MODE: No humans. No dialogue. No anatomy. "
+                        "Subject is landscape, animals, weather, or water only. "
+                        "Remove any human-focused instructions from your output.\n"
+                    )
 
         # Animation preset injection
         if animation_preset and animation_preset != "None":
@@ -2240,9 +2973,7 @@ class Gemma4PromptGen:
                 )
             else:
                 # LTX arc depth scales with duration.
-                # DEPTH OVER BREADTH: longer clips go deeper into the same scene.
                 if screenplay_mode:
-                    # Screenplay mode: tell the model how many action beats to write
                     if duration_sec <= 5:
                         arc = (
                             f"SHORT clip: {duration_sec}s ({frame_count} frames). "
@@ -2253,44 +2984,112 @@ class Gemma4PromptGen:
                             f"MEDIUM clip: {duration_sec}s ({frame_count} frames). "
                             f"Write the Characters block, Scene block, then 4–5 action beats."
                         )
-                    else:
+                    elif duration_sec <= 25:
                         arc = (
                             f"LONG clip: {duration_sec}s ({frame_count} frames). "
                             f"Write the Characters block, Scene block, then 6–8 action beats. "
                             f"Depth over breadth — stay in the same location, go deeper into "
                             f"the physical action and dialogue, do not introduce new locations."
                         )
+                    else:
+                        arc = (
+                            f"EXTENDED clip: {duration_sec}s ({frame_count} frames). "
+                            f"Write the Characters block, Scene block, then 9–12 action beats. "
+                            f"Each beat must advance the physical state or emotional dynamic. "
+                            f"Depth over breadth — no new locations, no new characters."
+                        )
                 else:
                     if duration_sec <= 5:
                         arc = (
                             f"SHORT clip: {duration_sec}s ({frame_count} frames). "
-                            f"4–5 sentences. Stay inside the scene the user described — "
-                            f"do not add locations, characters, or events they did not mention. "
-                            f"One subject, one action, one camera move. Close on sound."
+                            f"4–5 sentences. One subject, one action, one camera move. Close on sound."
+                        )
+                    elif duration_sec <= 10:
+                        arc = (
+                            f"SHORT-MEDIUM clip: {duration_sec}s ({frame_count} frames). "
+                            f"6–7 sentences. Stay inside the scene. "
+                            f"More texture, more physical detail, richer audio. "
+                            f"Camera responds to each action. Close on sound."
                         )
                     elif duration_sec <= 15:
                         arc = (
                             f"MEDIUM clip: {duration_sec}s ({frame_count} frames). "
-                            f"5–6 sentences. Stay inside the scene the user described. "
-                            f"Go deeper — more texture, more physical detail, richer audio — "
-                            f"do not introduce new locations or characters the user did not mention. "
-                            f"Camera responds to each action. Close on sound."
+                            f"8–10 sentences. Stay inside the scene the user described. "
+                            f"Go deeper — every sentence must advance the physical action or camera position. "
+                            f"Rich audio throughout. Close on sound."
+                        )
+                    elif duration_sec <= 25:
+                        arc = (
+                            f"LONG clip: {duration_sec}s ({frame_count} frames). "
+                            f"11–14 sentences. DEPTH NOT BREADTH — "
+                            f"richer texture, more physical detail on the subject, layered audio evolving beat by beat, "
+                            f"camera finding new angles on the same action. "
+                            f"Every sentence must be distinct from the last — no restating what was already described. "
+                            f"Close on sound or silence."
                         )
                     else:
                         arc = (
-                            f"LONG clip: {duration_sec}s ({frame_count} frames). "
-                            f"6–8 sentences. DEPTH NOT BREADTH — the extra length means more detail "
-                            f"on the same subject in the same scene, not more locations, not more characters, "
-                            f"not more events. Use it for: richer texture on the environment, "
-                            f"more physical detail on the subject, layered audio, "
-                            f"the camera moving closer or finding a new angle on the same action. "
-                            f"Everything in the prompt must come directly from what the user described. "
-                            f"Close on sound or silence."
+                            f"EXTENDED clip: {duration_sec}s ({frame_count} frames). "
+                            f"15–20 sentences. This is a full scene arc — "
+                            f"establish, develop, escalate, resolve. "
+                            f"Each sentence a discrete beat: something changes, moves, or sounds different. "
+                            f"Camera evolves throughout — don't stay in one position. "
+                            f"Audio layers shift and build. Physical detail at maximum specificity. "
+                            f"Close on a held moment of sound or silence."
                         )
                 parts.append(f"VIDEO LENGTH: {arc}\n")
 
-        # Image context
-        if image_path is not None:
+        # Image context injection — mode-aware
+        if image_mode == "bracket":
+            # Two images: first frame + last frame
+            if is_video_model(target_model):
+                parts.append(
+                    "IMAGE CONTEXT (BRACKETED I2V — START → END):\n"
+                    "Two frames have been embedded above: IMAGE 1 is the START frame, IMAGE 2 is the END frame.\n"
+                    "Your task is to write a prompt describing the JOURNEY between them.\n"
+                    "RULES:\n"
+                    "- Ground the opening of the prompt exactly in IMAGE 1: subject, clothing, pose, environment, lighting.\n"
+                    "- Ground the close of the prompt exactly in IMAGE 2: what has changed — position, state, expression, lighting.\n"
+                    "- The middle of the prompt is the transition — describe HOW the scene moves from one state to the other.\n"
+                    "- Do not contradict either image. Do not invent elements that appear in neither.\n"
+                    "- Lock identity: same person, same location unless clearly different in IMAGE 2.\n"
+                    "- Negative guidance: morphing, warping, face deformation, flickering, identity drift.\n"
+                )
+            else:
+                parts.append(
+                    "IMAGE CONTEXT (STYLE BRIDGE — IMAGE 1 → IMAGE 2):\n"
+                    "Two reference images have been embedded. IMAGE 1 is the starting reference, IMAGE 2 is the target state.\n"
+                    "Write a prompt that produces an image consistent with IMAGE 2 while grounded in the subject of IMAGE 1.\n"
+                    "Note any changes in lighting, pose, expression, or composition between the two and reflect them.\n"
+                )
+
+        elif image_mode == "video":
+            # Multiple frames sampled from a video batch
+            n = len(image_paths) if image_paths else 0
+            if is_video_model(target_model):
+                parts.append(
+                    f"IMAGE CONTEXT (VIDEO CONTINUATION — {n} SAMPLED FRAMES):\n"
+                    f"{n} frames sampled evenly from a source video have been embedded above, "
+                    f"in chronological order from first to last.\n"
+                    "RULES:\n"
+                    "- Analyse the subject, action, environment, lighting, and motion arc across all frames.\n"
+                    "- Understand the TRAJECTORY: where is this scene heading? What is the momentum?\n"
+                    "- Write a prompt that CONTINUES from where the last frame ends — do not describe what already happened.\n"
+                    "- Match subject identity exactly: hair, clothing, skin tone, body type from the frames.\n"
+                    "- Match environment and lighting from the final frames — that is where the next clip begins.\n"
+                    "- The continuation prompt should feel like the next shot in the same sequence.\n"
+                    "- Negative guidance: do not restart the scene, do not contradict the final frame state.\n"
+                )
+            else:
+                parts.append(
+                    f"IMAGE CONTEXT (VIDEO REFERENCE — {n} SAMPLED FRAMES):\n"
+                    f"{n} frames from a video have been embedded above in chronological order.\n"
+                    "Ground the prompt in the subject, style, and visual language shown across these frames. "
+                    "The generated image should feel like it belongs to the same visual world.\n"
+                )
+
+        elif image_mode == "single":
+            # Standard single I2V / I2I grounding — original behaviour
             if "Wan" in target_model:
                 parts.append(
                     "IMAGE CONTEXT (I2V): An image has been embedded above. "
@@ -2354,61 +3153,171 @@ class Gemma4PromptGen:
                 )
 
         # Dialogue (video models only)
-        if dialogue and is_video_model(target_model) and not screenplay_mode:
-            # Detect mode from instruction
-            instr_lower = instruction.lower()
-            is_singing = any(w in instr_lower for w in ["sing", "singing", "song", "vocal", "chorus", "lyrics", "melody"])
-            is_asmr = any(w in instr_lower for w in ["asmr", "whisper", "whispering", "tingle", "soft spoken", "ear"])
-            is_talking = any(w in instr_lower for w in ["talk", "talking", "speak", "speaking", "say", "says", "telling", "monologue", "conversation"])
+        if _dialogue_active and is_video_model(target_model) and not screenplay_mode:
+            # instr_lower already computed above for energy detection — reuse it
+            is_singing  = any(w in instr_lower for w in ["sing", "singing", "song", "vocal", "chorus", "lyrics", "melody"])
+            is_asmr     = any(w in instr_lower for w in [
+                "asmr", "whisper", "whispering", "tingle", "soft spoken", "softly",
+                "soft voice", "ear", "breathe", "breathing", "hushed", "murmur",
+            ])
+            is_talking  = any(w in instr_lower for w in [
+                "talk", "talking", "speak", "speaking", "say", "says", "telling",
+                "monologue", "conversation", "dialogue", "discusses", "argues",
+                "explains", "shouts", "yells", "whispers", "responds",
+            ])
 
-            if is_singing:
-                parts.append(
-                    "DIALOGUE MODE — SINGING (PRIMARY FOCUS):\n"
-                    "Singing is the dominant event of this scene — everything else serves it.\n"
-                    "RULES:\n"
-                    "- Every beat must contain sung lyrics in double quotes — invent lines that match the scene's mood and the user's instruction exactly.\n"
-                    "- Describe vocal quality per line: chest voice, head voice, falsetto, break, vibrato, whisper-to-belt, sustained note, run.\n"
-                    "- Format: [physical action] + [sung line in quotes] + [vocal quality] + [camera/body response].\n"
-                    "- The camera responds to the singing — rack focus on lips, drift in on held notes, pull back on powerful moments.\n"
-                    "- Audio layer: the voice IS the primary audio source. Name it with texture: 'her voice breaking on the high note', 'a run dissolving into breath'.\n"
-                    "- Do NOT write generic mood description in place of actual sung words. Write the words.\n"
-                )
-            elif is_asmr:
-                parts.append(
-                    "DIALOGUE MODE — ASMR (PRIMARY FOCUS):\n"
-                    "ASMR audio and whispered voice are the dominant event — the camera serves the sound.\n"
-                    "RULES:\n"
-                    "- Every beat must contain whispered or softly spoken words in double quotes — content must be contextually relevant to the user's instruction.\n"
-                    "- Describe ASMR trigger sounds explicitly: nail tapping, fabric rustling, page turning, brush strokes, lip sounds, breath — name each one.\n"
-                    "- Voice quality per line: barely audible whisper, soft murmur, slow deliberate pace, lips close to mic, breath audible between words.\n"
-                    "- Camera stays close — extreme close-ups of mouth, hands, objects. Macro shots. No wide shots.\n"
-                    "- Audio is everything: layer the whispered voice over one tactile trigger sound and near-silence ambient. No loud sounds.\n"
-                    "- Do NOT write generic 'she whispers softly' — write the actual whispered words in quotes.\n"
-                )
-            elif is_talking:
-                parts.append(
-                    "DIALOGUE MODE — TALKING (PRIMARY FOCUS):\n"
-                    "Spoken dialogue is the primary event — physical action and camera serve the words.\n"
-                    "RULES:\n"
-                    "- Every beat must contain actual spoken words in double quotes — invent lines that are directly relevant to the user's instruction and scene context. Do NOT write generic filler.\n"
-                    "- Minimum 2 spoken lines per paragraph. Aim for 3-4 if frame count allows.\n"
-                    "- Format: [physical setup] + [spoken line in quotes with delivery note] + [camera response] + [listener/environment reaction].\n"
-                    "- Delivery must be specified: low and flat, rushed and breathless, slow with pauses, cracking with tension, matter-of-fact, laughing through the words.\n"
-                    "- Camera cuts or moves in response to speech — push in on a confession, cut away on a hard line, rack focus mid-sentence.\n"
-                    "- Do NOT write 'she says something' or 'he speaks' — write the actual words.\n"
-                )
+            if _dialogue_mode == "Unleashed":
+                # Saturate the entire prompt with speech regardless of scene type
+                if is_singing:
+                    parts.append(
+                        "DIALOGUE MODE — UNLEASHED SINGING:\n"
+                        "The voice is everything. Every sentence of this prompt contains sung words in double quotes.\n"
+                        "RULES:\n"
+                        "- EVERY beat has sung lyrics — no beat is wordless. Invent lines that fit the scene perfectly.\n"
+                        "- Each lyric line gets: vocal quality (chest voice, belt, falsetto, break, run, whisper-to-shout), "
+                        "physical body response (chest heave, jaw drop, eyes close), and camera reaction (push in on the note, rack to the hands).\n"
+                        "- The body is an instrument — describe it: 'her neck straining on the high note', 'jaw falling open on the hold'.\n"
+                        "- Audio layer is VOICE FIRST, everything else is under it.\n"
+                        "- Between sung lines: one physical micro-beat (breath, step, hair flip) then straight back into lyrics.\n"
+                        "- DO NOT write atmosphere filler in place of words. Every sentence serves the voice.\n"
+                    )
+                elif is_asmr:
+                    parts.append(
+                        "DIALOGUE MODE — UNLEASHED ASMR:\n"
+                        "Every sentence contains a whispered or breathed word in double quotes. No sentence is silent.\n"
+                        "RULES:\n"
+                        "- Every beat: whispered words first, trigger sound second, camera third. Nothing reversed.\n"
+                        "- Voice quality rotates per line: barely-there breath, slow deliberate syllables, lips-on-mic closeness, "
+                        "drawn-out vowels, words that dissolve into pure exhale.\n"
+                        "- Name every tactile sound: the nail against glass, the paper fold, the zip of fabric — specific, not generic.\n"
+                        "- Camera never leaves the close-up zone. Every frame is a macro.\n"
+                        "- DO NOT write wide shots or movement description. This is all breath and texture.\n"
+                    )
+                else:
+                    # Universal Unleashed — talking saturates everything
+                    parts.append(
+                        "DIALOGUE MODE — UNLEASHED:\n"
+                        "SPOKEN WORDS ARE THE PRIMARY EVENT OF THIS ENTIRE VIDEO.\n"
+                        "Characters talk from the first frame to the last. Every sentence of this prompt contains actual spoken dialogue in double quotes.\n"
+                        "MANDATORY RULES — NON-NEGOTIABLE:\n"
+                        "- EVERY BEAT has spoken words. Not 'she speaks' — write what she says. In quotes. Every time.\n"
+                        "- Minimum 4 spoken lines per paragraph. No exceptions. If the scene has one character, they monologue. "
+                        "If it has two, they talk over each other.\n"
+                        "- Delivery is specified for EVERY line: the exact vocal register, pace, and physical state the words come from. "
+                        "Examples: low and flat through gritted teeth, rushing the words before she loses nerve, "
+                        "laughing mid-sentence and unable to stop, dropping to a whisper on the last word.\n"
+                        "- After each spoken line: one physical micro-reaction from the listener or the speaker's body, then the next line.\n"
+                        "- CAPS for peak-intensity lines — shouted words, breaking points, declarations — use them. Don't soften them.\n"
+                        "- Camera IS reactive to speech: push in when a confession lands, cut on a hard line, hold on a face through the silence after a question.\n"
+                        "- Audio layer: the voice is the primary track. Every other sound is under it.\n"
+                        "- Fill the prompt with words. Do not use atmosphere description as a substitute for dialogue. "
+                        "If you have written a sentence without spoken words in it, that is a failure. Fix it.\n"
+                    )
+
+            elif _dialogue_mode == "More":
+                if is_singing:
+                    parts.append(
+                        "DIALOGUE MODE — SINGING (HIGH DENSITY):\n"
+                        "Singing is the primary event. Every beat has lyrics. No beat is purely descriptive.\n"
+                        "RULES:\n"
+                        "- Every beat: sung lyric in quotes + vocal quality + camera response.\n"
+                        "- Minimum 3 lyric lines per paragraph.\n"
+                        "- Vocal qualities must vary: don't repeat the same descriptor twice in a row.\n"
+                        "- Camera responds to every note — it's not passive.\n"
+                        "- Audio layer: voice is primary. Name texture and register, not just volume.\n"
+                    )
+                elif is_asmr:
+                    parts.append(
+                        "DIALOGUE MODE — ASMR (HIGH DENSITY):\n"
+                        "Every beat has whispered words. No silent beats.\n"
+                        "RULES:\n"
+                        "- Every beat: whispered words in quotes + specific trigger sound + macro camera.\n"
+                        "- Minimum 3 whispered lines per paragraph.\n"
+                        "- Voice quality varies per line. Name every tactile sound specifically.\n"
+                        "- No wide shots anywhere in the prompt.\n"
+                    )
+                elif is_talking:
+                    parts.append(
+                        "DIALOGUE MODE — TALKING (HIGH DENSITY):\n"
+                        "Spoken dialogue is the primary event. Every beat has words.\n"
+                        "RULES:\n"
+                        "- Minimum 3-4 spoken lines per paragraph in quotes.\n"
+                        "- Delivery specified for every line.\n"
+                        "- Camera reactive to speech — it moves when words land.\n"
+                        "- CAPS for peak-intensity lines where the emotion demands it.\n"
+                        "- No beat is wordless. Physical action exists to serve and frame the speech.\n"
+                    )
+                else:
+                    parts.append(
+                        "DIALOGUE — HIGH DENSITY:\n"
+                        "Spoken words are required throughout. Every beat has at least one line of dialogue.\n"
+                        "RULES:\n"
+                        "- Minimum 3 spoken lines per paragraph, in double quotes.\n"
+                        "- Delivery specified every time: the vocal register and physical state it comes from.\n"
+                        "- CAPS where the scene calls for shouting, declarations, or breaking points.\n"
+                        "- Camera responds to the words — it doesn't just watch.\n"
+                        "- Never write 'she says something' — write the actual words.\n"
+                    )
+
             else:
-                # Generic dialogue — contextual enforcement
-                parts.append(
-                    "DIALOGUE: Spoken dialogue is required in this scene.\n"
-                    "RULES:\n"
-                    "- Include at least 2 spoken lines embedded directly in the action — words in double quotes, not descriptions of speaking.\n"
-                    "- Dialogue must be contextually relevant to this specific scene and instruction — do not invent unrelated speech.\n"
-                    "- Each line must have a delivery note: whispered, flat, breathless, low, sharp, laughing.\n"
-                    "- Format: [physical action] + [\"spoken line\"] + [delivery] + [camera/body response].\n"
-                    "- Never write 'she speaks softly' — write what she actually says.\n"
-                )
-        elif dialogue and not is_video_model(target_model):
+                # Auto — contextual, light touch
+                if is_singing:
+                    parts.append(
+                        "DIALOGUE MODE — SINGING (PRIMARY FOCUS):\n"
+                        "Singing is the dominant event of this scene — everything else serves it.\n"
+                        "RULES:\n"
+                        "- Every beat must contain sung lyrics in double quotes — invent lines that match the scene's mood exactly.\n"
+                        "- Describe vocal quality per line: chest voice, head voice, falsetto, break, vibrato, whisper-to-belt, sustained note, run.\n"
+                        "- Format: [physical action] + [sung line in quotes] + [vocal quality] + [camera/body response].\n"
+                        "- The camera responds to the singing — rack focus on lips, drift in on held notes, pull back on powerful moments.\n"
+                        "- Audio layer: the voice IS the primary audio source.\n"
+                        "- Do NOT write generic mood description in place of actual sung words. Write the words.\n"
+                    )
+                elif is_asmr:
+                    parts.append(
+                        "DIALOGUE MODE — ASMR (PRIMARY FOCUS):\n"
+                        "ASMR audio and whispered voice are the dominant event — the camera serves the sound.\n"
+                        "RULES:\n"
+                        "- Every beat must contain whispered or softly spoken words in double quotes.\n"
+                        "- Describe ASMR trigger sounds explicitly: nail tapping, fabric rustling, page turning, brush strokes, lip sounds, breath.\n"
+                        "- Voice quality per line: barely audible whisper, soft murmur, slow deliberate pace.\n"
+                        "- Camera stays close — extreme close-ups of mouth, hands, objects.\n"
+                        "- Audio is everything: layer voice over one tactile trigger and near-silence ambient.\n"
+                        "- Do NOT write generic 'she whispers softly' — write the actual words.\n"
+                    )
+                elif is_talking:
+                    parts.append(
+                        "DIALOGUE MODE — TALKING (PRIMARY FOCUS):\n"
+                        "Spoken dialogue is the primary event — physical action and camera serve the words.\n"
+                        "RULES:\n"
+                        "- Every beat must contain actual spoken words in double quotes.\n"
+                        "- Minimum 2 spoken lines per paragraph.\n"
+                        "- Format: [physical setup] + [spoken line in quotes with delivery note] + [camera response].\n"
+                        "- Delivery must be specified: low and flat, rushed and breathless, cracking with tension, etc.\n"
+                        "- Do NOT write 'she says something' — write the actual words.\n"
+                    )
+                else:
+                    parts.append(
+                        "DIALOGUE: Spoken dialogue is required in this scene.\n"
+                        "RULES:\n"
+                        "- Include at least 2 spoken lines embedded directly in the action — words in double quotes.\n"
+                        "- Dialogue must be contextually relevant to this specific scene.\n"
+                        "- Each line must have a delivery note: whispered, flat, breathless, low, sharp, laughing.\n"
+                        "- Never write 'she speaks softly' — write what she actually says.\n"
+                    )
+
+        # Interstitial adlib injection — short filler beat between dialogue lines
+        if _dialogue_active and is_video_model(target_model):
+            interstitial = _pick_interstitial(instruction, seed)
+            parts.append(
+                f"INTERSTITIAL BEATS: Between dialogue lines, insert a short non-verbal beat. "
+                f"Example from this scene's context: {interstitial}. "
+                f"These are brief physical or sonic moments — a breath, a sound, a micro-reaction — "
+                f"that separate one line of dialogue from the next. "
+                f"Format: [line] — [interstitial beat] — [next line]. "
+                f"Pick a new interstitial each time, never repeat the same beat twice.\n"
+            )
+        elif _dialogue_active and not is_video_model(target_model):
             parts.append(
                 "MOOD: The scene has a conversational, intimate quality — "
                 "imply dialogue through body language and expression rather than written text.\n"
@@ -2458,9 +3367,62 @@ class Gemma4PromptGen:
                 "Stay inside his perspective at all times.\n"
             )
 
+        # NSFW addon injection
+        # content_gate=NSFW forces addon active; content_gate=SFW suppresses it
+        _addon_active = False
+        if content_gate == "NSFW":
+            _addon_active = True
+        elif content_gate == "SFW":
+            _addon_active = False
+
+        if _addon_active:
+            try:
+                import os as _os
+                import sys as _sys
+                _node_dir = _os.path.dirname(_os.path.abspath(__file__))
+                if _node_dir not in _sys.path:
+                    _sys.path.insert(0, _node_dir)
+                from nsfw_suite_gemma4 import build_nsfw_injection
+                nsfw_block = build_nsfw_injection(instruction, energy, seed)
+                if nsfw_block:
+                    # Strip dialogue enhancers if dialogue is Off
+                    if not _dialogue_active:
+                        lines = nsfw_block.split("\n")
+                        filtered = []
+                        skip = False
+                        for line in lines:
+                            if "DIALOGUE ENHANCERS" in line:
+                                skip = True
+                            elif skip and line.strip() == "":
+                                skip = False
+                            elif not skip:
+                                filtered.append(line)
+                        nsfw_block = "\n".join(filtered)
+                    if nsfw_block.strip():
+                        parts.append(nsfw_block)
+            except ImportError:
+                parts.append(
+                    "⚠ nsfw_suite_gemma4.py not found in node folder. "
+                    "Place it alongside gemma4_prompt_gen.py.\n"
+                )
+            except Exception as e:
+                parts.append(f"⚠ Addon error: {e}\n")
+
+        if word_target > 0:
+            word_instruction = (
+                f"\n\nWORD COUNT — MANDATORY: Your output MUST be exactly {word_target} words. "
+                f"Count as you write. Do not stop early. Do not summarise. "
+                f"If you reach the end of the scene before {word_target} words, go deeper — "
+                f"more physical detail, richer audio, closer camera moves, more texture. "
+                f"The final word count must be {word_target}. This is not a suggestion."
+            )
+        else:
+            word_instruction = ""
+
         parts.append(
             "SCENE TO WRITE A PROMPT FOR:\n"
             + instruction
+            + word_instruction
             + "\n\nOutput the prompt now. One paragraph. No headers. No bullets. No preamble. "
             "The first word you write is the first word of the cinematic paragraph itself. Begin:"
         )
@@ -2469,7 +3431,127 @@ class Gemma4PromptGen:
 
     # ── Output cleaner ────────────────────────────────────────────────────
 
-    def _clean_output(self, text: str, screenplay_mode: bool = False) -> str:
+    def _check_prompt_quality(self, prompt: str, dialogue: str, energy: str,
+                               frame_count: int, target_model: str) -> tuple:
+        """
+        Fast string-only quality checks. No LLM call. Returns (passed: bool, report: str, score: int).
+
+        Checks:
+          1. CONTAMINATION  — preamble phrases / markdown headers still present after clean
+          2. LENGTH         — suspiciously short vs frame count (video models only)
+          3. DIALOGUE       — quote density vs requested dialogue mode
+          4. CAPS           — shouty words present when energy=Extreme
+          5. TRUNCATION     — prompt ends mid-sentence (cut off by max_tokens)
+
+        Score: 0-100. Fail threshold: < 60.
+        """
+        issues  = []
+        bonuses = []
+        score   = 100
+
+        # ── 1. CONTAMINATION ──────────────────────────────────────────────
+        contamination_patterns = [
+            r"^here'?s?\s",
+            r"^sure[,!.]",
+            r"^of course",
+            r"^i've\s",
+            r"^let me\s",
+            r"^note:",
+            r"^below is",
+            r"^this prompt\s",
+            r"^the prompt\s",
+            r"^prompt:",
+            r"^#+\s",            # markdown header
+            r"^\*\*\w.*\*\*\s*$",  # standalone bold label line
+        ]
+        first_line = prompt.split("\n")[0].strip().lower()
+        contaminated = any(re.match(p, first_line, re.IGNORECASE) for p in contamination_patterns)
+        if contaminated:
+            issues.append("preamble contamination in first line")
+            score -= 30
+
+        # ── 2. LENGTH ─────────────────────────────────────────────────────
+        if is_video_model(target_model):
+            word_count   = len(prompt.split())
+            duration_sec = round(frame_count / 25.0, 1)
+            # Rough expectation: ~25 words per second of video, min floor of 60
+            expected_min = max(60, int(duration_sec * 20))
+            if word_count < expected_min:
+                issues.append(f"too short ({word_count}w, expected ~{expected_min}w for {duration_sec}s clip)")
+                score -= 25
+            elif word_count >= expected_min:
+                bonuses.append(f"length OK ({word_count}w)")
+
+        # ── 3. DIALOGUE ───────────────────────────────────────────────────
+        if dialogue in ("Auto", "More", "Unleashed") and is_video_model(target_model):
+            # Count quoted strings (dialogue lines)
+            quote_matches = re.findall(r'"[^"]{4,}"', prompt)
+            n_quotes = len(quote_matches)
+
+            if dialogue == "Unleashed":
+                # Every paragraph should have quotes
+                paragraphs = [p.strip() for p in prompt.split("\n\n") if p.strip()]
+                paras_with_quotes = sum(1 for p in paragraphs if '"' in p)
+                if paragraphs and paras_with_quotes / len(paragraphs) < 0.6:
+                    issues.append(
+                        f"Unleashed mode: only {paras_with_quotes}/{len(paragraphs)} paragraphs have dialogue"
+                    )
+                    score -= 35
+                elif n_quotes >= 4:
+                    bonuses.append(f"dialogue saturated ({n_quotes} lines)")
+            elif dialogue == "More":
+                if n_quotes < 3:
+                    issues.append(f"More mode: only {n_quotes} dialogue line(s), expected 3+")
+                    score -= 20
+                else:
+                    bonuses.append(f"dialogue density OK ({n_quotes} lines)")
+            else:  # Auto
+                if n_quotes == 0:
+                    # Only flag if the scene type typically warrants dialogue
+                    has_person = any(w in prompt.lower() for w in
+                                     ["she ", "he ", "they ", "her ", "him ", "says", "speaks", "voice"])
+                    if has_person:
+                        issues.append("Auto dialogue mode: no quoted lines found despite human subject")
+                        score -= 10
+                else:
+                    bonuses.append(f"dialogue present ({n_quotes} lines)")
+
+        # ── 4. CAPS / ENERGY EXTREME ──────────────────────────────────────
+        if energy == "Extreme":
+            # Look for words that are ALL CAPS and at least 3 chars (not acronyms like LTX)
+            caps_words = re.findall(r'\b[A-Z]{3,}\b', prompt)
+            # Filter out known non-shout acronyms
+            shout_exclusions = {"LTX", "POV", "FPS", "HDR", "RGB", "EXT", "INT", "VFX", "CGI", "SFX"}
+            shout_words = [w for w in caps_words if w not in shout_exclusions]
+            if len(shout_words) == 0:
+                issues.append("Extreme energy: no CAPS shouting found")
+                score -= 15
+            else:
+                bonuses.append(f"CAPS present ({len(shout_words)} shout words: {', '.join(shout_words[:4])})")
+
+        # ── 5. TRUNCATION ─────────────────────────────────────────────────
+        # Only meaningful for video models — image model tags don't end in punctuation
+        if is_video_model(target_model):
+            stripped = prompt.rstrip()
+            if stripped and stripped[-1] not in ".!?\"'…)":
+                issues.append("prompt appears truncated (no terminal punctuation)")
+                score -= 20
+
+        # ── REPORT ────────────────────────────────────────────────────────
+        score   = max(0, score)
+        passed  = score >= 60
+
+        status  = "PASS" if passed else "FAIL"
+        parts   = []
+        if issues:
+            parts.append("issues: " + " | ".join(issues))
+        if bonuses:
+            parts.append("ok: " + " | ".join(bonuses))
+        report = f"[QC {status} {score}/100] " + (" — ".join(parts) if parts else "all checks clean")
+
+        return passed, report, score
+
+    def _clean_output(self, text: str, screenplay_mode: bool = False) -> tuple:
         if text.startswith("❌") or text.startswith("⚠️"):
             return text
 
@@ -2478,11 +3560,17 @@ class Gemma4PromptGen:
         # the positive tags in the prompt wire. Negatives belong in the
         # KSampler's negative conditioning, not mixed into the positive string.
         # Broad pattern handles any whitespace variation (blank lines, spaces, etc.)
+        # Extract negative prompt before stripping it from positive
+        neg_prompt = ""
+        neg_match = re.search(r"(?i)\s*negative\s*:\s*", text)
+        if neg_match:
+            neg_raw = text[neg_match.end():].strip()
+            # Take only up to the next blank line or end
+            neg_prompt = neg_raw.split("\n\n")[0].strip()
+            text = text[:neg_match.start()]
+
         if re.search(r"(?i)positive\s*:", text):
             text = re.sub(r"(?i)^\s*positive\s*:\s*", "", text, flags=re.MULTILINE)
-        neg_match = re.search(r"(?i)\s*negative\s*:", text)
-        if neg_match:
-            text = text[:neg_match.start()]
 
         # Strip markdown fences
         if "```" in text:
@@ -2584,41 +3672,72 @@ class Gemma4PromptGen:
         if len(text) > 2 and text[0] in ('"', "'") and text[-1] == text[0]:
             text = text[1:-1].strip()
 
-        return text
+        return text, neg_prompt
 
     # ── llama-server call ─────────────────────────────────────────────────
 
     def _call_llama(self, combined_message: str, system_prompt: str,
-                    server_url: str, image_path=None) -> str:
+                    server_url: str, image_paths=None,
+                    frame_count: int = 257, target_model: str = "", word_target: int = 0,
+                    temperature_override: float = 1.0) -> str:
         """
         Call llama-server's OpenAI-compatible /v1/chat/completions endpoint.
 
-        Image grounding: if image_path is provided, we base64-encode the JPEG
-        and send it as a multimodal user message (vision models only).
-        Gemma 4 31B supports image input via llama-server's vision pipeline.
+        Image grounding: if image_paths is provided (list of file paths), we base64-encode
+        each JPEG and send them as a multimodal user message in order.
+        Gemma 4 31B supports multiple image inputs via llama-server's vision pipeline.
+        Accepts: None, a single path string (legacy), or a list of paths.
         """
         import base64
 
         endpoint = f"{server_url}/v1/chat/completions"
 
-        # Build user content — text only, or multimodal if image supplied
-        if image_path and os.path.exists(image_path):
-            try:
-                with open(image_path, "rb") as f:
-                    img_b64 = base64.b64encode(f.read()).decode("utf-8")
-                user_content = [
-                    {
-                        "type": "image_url",
-                        "image_url": {"url": f"data:image/jpeg;base64,{img_b64}"},
-                    },
-                    {"type": "text", "text": combined_message},
-                ]
-                print(f"[Gemma4PromptGen] Image sent as base64 vision input")
-            except Exception as e:
-                print(f"[Gemma4PromptGen] Image encode failed, falling back to text: {e}")
-                user_content = combined_message
+        # Normalise image_paths — accept None, str, or list
+        if image_paths is None:
+            paths = []
+        elif isinstance(image_paths, str):
+            paths = [image_paths] if image_paths else []
+        else:
+            paths = [p for p in image_paths if p]
+
+        # Build user content — text only, or multimodal if images supplied
+        if paths:
+            content_blocks = []
+            loaded = 0
+            for p in paths:
+                if os.path.exists(p):
+                    try:
+                        with open(p, "rb") as f:
+                            img_b64 = base64.b64encode(f.read()).decode("utf-8")
+                        content_blocks.append({
+                            "type": "image_url",
+                            "image_url": {"url": f"data:image/jpeg;base64,{img_b64}"},
+                        })
+                        loaded += 1
+                    except Exception as e:
+                        print(f"[Gemma4PromptGen] Image encode failed for {p}: {e}")
+            content_blocks.append({"type": "text", "text": combined_message})
+            user_content = content_blocks
+            print(f"[Gemma4PromptGen] {loaded}/{len(paths)} image(s) sent as base64 vision input")
         else:
             user_content = combined_message
+
+        # Scale max_tokens — word_target wins if set, otherwise scale with duration
+        if word_target > 0:
+            # words * 1.5 = safe token headroom (English avg ~0.75 tokens/word)
+            # add 200 buffer for any thinking/preamble the model emits
+            max_tok = int(word_target * 1.5) + 200
+            print(f'[Gemma4PromptGen] word_target={word_target} -> max_tokens={max_tok}')
+        else:
+            duration_sec = round(frame_count / 25.0, 1) if is_video_model(target_model) else 0
+            if duration_sec >= 30:
+                max_tok = 1400
+            elif duration_sec >= 20:
+                max_tok = 1100
+            elif duration_sec >= 10:
+                max_tok = 900
+            else:
+                max_tok = 700
 
         payload = {
             "model": "gemma4",
@@ -2626,10 +3745,10 @@ class Gemma4PromptGen:
                 {"role": "system", "content": system_prompt},
                 {"role": "user",   "content": user_content},
             ],
-            "temperature": 1.0,
+            "temperature": temperature_override,
             "top_p": 0.95,
             "top_k": 64,
-            "max_tokens": 800,
+            "max_tokens": max_tok,
             "stream": False,
         }
 
@@ -2768,7 +3887,7 @@ class Gemma4PromptGen:
             llama_exe,
             "-m", model_path,
             "-ngl", "99",
-            "--ctx-size", "8192",
+            "--ctx-size", "12288",
             "--flash-attn", "on",
             "--reasoning-budget", "0",
         ]
