@@ -2103,10 +2103,12 @@ def has_audio(target_model: str) -> bool:
 # ══════════════════════════════════════════════════════════════════════════
 
 LLAMA_INSTALL_DIR = r"C:\llama"
-MODELS_DIR = r"C:\models"
+LLAMA_EXE         = r"C:\llama\llama-server.exe"
+MODELS_DIR        = r"C:\models"
+LLAMA_PORT        = 8080
 LLAMA_RELEASE_URL = (
-    "https://github.com/ggml-org/llama.cpp/releases/download/b9009/"
-    "llama-b9009-bin-win-cuda-13.1-x64.zip"
+    "https://github.com/ggml-org/llama.cpp/releases/download/b8846/"
+    "llama-b8846-bin-win-cuda-cu13.1-x64.zip"
 )
 
 
@@ -2290,25 +2292,13 @@ class Gemma4PromptGen:
                 }),
             },
             "optional": {
-                # ── IMAGE / VIDEO INPUTS ───────────────────────────────────
-                "first_frame": ("IMAGE", {
+                # ── IMAGE INPUT ────────────────────────────────────────────
+                "image": ("IMAGE", {
                     "tooltip": (
-                        "Start frame / reference image. I2V grounding when used alone. "
-                        "Pair with last_frame to generate a start→end bridging prompt."
-                    ),
-                }),
-                "last_frame": ("IMAGE", {
-                    "tooltip": (
-                        "End frame — pair with first_frame to activate bracketed I2V mode. "
-                        "The model sees both images and writes a prompt describing the journey between them."
-                    ),
-                }),
-                "video_frames": ("IMAGE", {
-                    "tooltip": (
-                        "Video frame batch (IMAGE tensor with B>1). "
-                        "The node samples video_sample_count frames evenly across the batch and "
-                        "sends them to the model as visual context. "
-                        "Use to generate a prompt that continues from where the video ends."
+                        "Reference image for I2V / I2I grounding. Connect any IMAGE tensor — "
+                        "load image node, VAE decoded frame, anything. "
+                        "Requires use_image toggle ON and mmproj GGUF alongside the model. "
+                        "The node encodes the first frame of the batch to JPEG and sends it to vision."
                     ),
                 }),
                 # ── FREQUENTLY TUNED ──────────────────────────────────────
@@ -2324,14 +2314,6 @@ class Gemma4PromptGen:
                 "🎞️ frame_count": ("INT", {
                     "default": 257, "min": 1, "max": 2000, "step": 1,
                     "tooltip": "LTX/Wan frame count @ 25fps. 257 = ~10s. Only used for video models.",
-                }),
-                "📹 video_sample_count": ("INT", {
-                    "default": 6, "min": 0, "max": 20, "step": 1,
-                    "tooltip": (
-                        "How many frames to sample from video_frames. "
-                        "0 = use all frames (up to 20). 6 is a good default — covers the arc "
-                        "without blowing the vision context. Frames are picked evenly across the full batch."
-                    ),
                 }),
                 "🎯 pov_mode": (
                     ["Off", "POV Female", "POV Male"],
@@ -2431,12 +2413,9 @@ class Gemma4PromptGen:
         screenplay_mode   = _kw("📝 screenplay_mode", "screenplay_mode",   default=False)
         caption_bridge    = _kw("🔗 caption_bridge",  "caption_bridge",    default=True)
         # optional inputs
-        first_frame       = _kw("first_frame",                             default=None)
-        last_frame        = _kw("last_frame",                              default=None)
-        video_frames      = _kw("video_frames",                            default=None)
+        image             = _kw("image",                                    default=None)
         character         = _kw("👤 character",       "character",         default="")
         frame_count       = _kw("🎞️ frame_count",     "frame_count",       default=257)
-        video_sample_count= _kw("📹 video_sample_count","video_sample_count",default=6)
         pov_mode          = _kw("🎯 pov_mode",        "pov_mode",          default="Off")
         word_target       = _kw("📏 word_target",     "word_target",       default=0)
         temperature       = _kw("🌡️ temperature",     "temperature",       default="Default (1.0)")
@@ -2478,11 +2457,7 @@ class Gemma4PromptGen:
                 pass
 
             # Store use_image so _ensure_llama_running can access it
-            self._use_image = use_image and (
-                first_frame is not None or
-                last_frame is not None or
-                video_frames is not None
-            )
+            self._use_image = use_image and image is not None
 
             # Auto-find or install llama-server
             llama_exe = self._find_or_install_llama()
@@ -2495,69 +2470,20 @@ class Gemma4PromptGen:
             if boot_status.startswith("❌"):
                 return (boot_status, "", "", "",)
 
-            # ── Image grounding — build list of (path, role) tuples ─────────
-            image_paths  = []   # list of temp file paths sent to LLM
-            image_mode   = "none"  # "single" | "bracket" | "video"
+            # ── Image grounding — single pin, simple path ─────────────────
+            image_paths = []
+            image_mode  = "none"
 
-            if use_image:
-                # ── Priority 1: video_frames batch ───────────────────────────
-                if video_frames is not None and video_frames.ndim == 4 and video_frames.shape[0] > 1:
-                    total_frames = video_frames.shape[0]
-                    n_sample = video_sample_count if video_sample_count > 0 else min(total_frames, 20)
-                    n_sample = min(n_sample, total_frames, 20)  # hard cap at 20
-
-                    if n_sample <= 1:
-                        indices = [0]
-                    else:
-                        # Evenly spaced across full batch, always include last frame
-                        step = (total_frames - 1) / (n_sample - 1)
-                        indices = [round(i * step) for i in range(n_sample)]
-                        indices = sorted(set(max(0, min(total_frames - 1, idx)) for idx in indices))
-
-                    print(f"[Gemma4PromptGen] Video mode: {total_frames} total frames, "
-                          f"sampling {len(indices)} at positions {indices}")
-
-                    for idx in indices:
-                        try:
-                            frame_tensor = video_frames[idx].unsqueeze(0)  # (1,H,W,C)
-                            path = self._tensor_to_tempfile(frame_tensor)
-                            image_paths.append(path)
-                        except Exception as e:
-                            print(f"[Gemma4PromptGen] Frame {idx} encode failed: {e}")
-
-                    image_mode = "video"
-
-                # ── Priority 2: bracketed first + last frame ──────────────────
-                elif first_frame is not None and last_frame is not None:
-                    try:
-                        # Always use the first image in the batch for first_frame
-                        _ff = first_frame[0:1] if first_frame.ndim == 4 else first_frame
-                        image_paths.append(self._tensor_to_tempfile(_ff))
-                    except Exception as e:
-                        print(f"[Gemma4PromptGen] first_frame encode failed: {e}")
-                    try:
-                        # Always use the LAST image in the batch for last_frame
-                        _lf = last_frame[-1:] if last_frame.ndim == 4 else last_frame
-                        image_paths.append(self._tensor_to_tempfile(_lf))
-                    except Exception as e:
-                        print(f"[Gemma4PromptGen] last_frame encode failed: {e}")
-                    image_mode = "bracket"
-
-                # ── Priority 3: single first_frame (standard I2V) ─────────────
-                elif first_frame is not None:
-                    try:
-                        image_paths.append(self._tensor_to_tempfile(first_frame))
-                        image_mode = "single"
-                    except Exception as e:
-                        print(f"[Gemma4PromptGen] first_frame encode failed: {e}")
-
-                # Single video_frames tensor with only 1 frame → treat as first_frame
-                elif video_frames is not None and video_frames.shape[0] == 1:
-                    try:
-                        image_paths.append(self._tensor_to_tempfile(video_frames))
-                        image_mode = "single"
-                    except Exception as e:
-                        print(f"[Gemma4PromptGen] video_frames(1) encode failed: {e}")
+            if use_image and image is not None:
+                try:
+                    # Always use the first frame of whatever batch is connected
+                    frame = image[0:1] if image.ndim == 4 else image
+                    path  = self._tensor_to_tempfile(frame)
+                    image_paths.append(path)
+                    image_mode = "single"
+                    print(f"[Gemma4PromptGen] Image grounding active — encoded 1 frame")
+                except Exception as e:
+                    print(f"[Gemma4PromptGen] Image encode failed: {e}")
 
             print(f"[Gemma4PromptGen] Image mode: {image_mode}, paths: {len(image_paths)}")
 
@@ -2716,9 +2642,8 @@ class Gemma4PromptGen:
     def _tensor_to_tempfile(self, image_tensor) -> str:
         """Convert a ComfyUI IMAGE tensor (B, H, W, C) to a temp JPEG for LLM context.
 
-        PNG at 1024px can be 1-2MB base64 — enough to blow Qwen's context window.
-        JPEG at 512px quality=75 is ~40-80KB base64 — safe for any local 9B model.
-        The LLM only needs to read the image for subject/scene grounding, not pixel-perfect detail.
+        768px JPEG quality=90 matches the captioner tool settings — consistent vision
+        quality across both tools without blowing the context window.
         """
         import numpy as np
         from PIL import Image as PILImage
@@ -2727,15 +2652,15 @@ class Gemma4PromptGen:
         arr = (frame.cpu().numpy() * 255).clip(0, 255).astype(np.uint8)
         pil_img = PILImage.fromarray(arr, mode="RGB")
 
-        # 512px is plenty for the LLM to read subject/scene. 1024 PNG = context bomb.
-        max_side = 512
+        # 768px matches captioner resolution — enough for the LLM to read subject/scene.
+        max_side = 768
         w, h = pil_img.size
         if max(w, h) > max_side:
             scale = max_side / max(w, h)
             pil_img = pil_img.resize((int(w * scale), int(h * scale)), PILImage.LANCZOS)
 
         tmp = tempfile.NamedTemporaryFile(suffix=".jpg", delete=False)
-        pil_img.save(tmp.name, format="JPEG", quality=75, optimize=True)
+        pil_img.save(tmp.name, format="JPEG", quality=90, optimize=True)  # matches captioner
         tmp.close()
         return tmp.name
 
@@ -3936,23 +3861,22 @@ class Gemma4PromptGen:
 
         cmd = [
             llama_exe,
-            "-m", model_path,
-            "-ngl", "99",
-            "--ctx-size", "12288",
+            "-m",        model_path,
+            "-ngl",      "99",
+            "--ctx-size", "8192",
             "--flash-attn", "on",
             "--reasoning-budget", "0",
+            "--log-verbose",
+            "--port",    "8080",
         ]
         if mmproj_path:
             cmd += ["--mmproj", mmproj_path]
 
         try:
             CREATE_NEW_PROCESS_GROUP = 0x00000200
-            DETACHED_PROCESS = 0x00000008
             Gemma4PromptGen._llama_process = subprocess.Popen(
                 cmd,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                creationflags=CREATE_NEW_PROCESS_GROUP | DETACHED_PROCESS,
+                creationflags=CREATE_NEW_PROCESS_GROUP,
             )
         except Exception as e:
             return f"❌ Failed to start llama-server: {e}"
