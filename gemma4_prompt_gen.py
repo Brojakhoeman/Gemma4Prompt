@@ -1842,16 +1842,29 @@ LTX 2.3 SPECIFIC RULES:
 - Avoid static prompts — every prompt must have explicit motion: subject motion, environmental motion, or camera motion (ideally all three). If it reads like a still photo, LTX may output a frozen video.
 - Spatial layout matters — LTX 2.3 respects left/right/foreground/background positioning. Use it.
 - Surface and texture detail — hair texture, skin, environmental surfaces, material finishes. Let the scene dictate what gets described.
-- I2V (when a start frame is provided) — focus on verbs not descriptions. Describe what moves and how, not what is visible. Lock the face and identity — describe only motion and camera changes.
+- I2V (when a start frame is provided) — sentence 1 MUST ground exactly what the start frame shows: subject clothing, hair, skin tone, environment, lighting. Then describe how those elements come to life — who moves, what moves, how. Lock face and identity throughout.
 - No internal states — never write "she feels", "he thinks", "she is excited". Show it physically.
 - No overloaded scenes — max 2–3 characters with clearly separated actions.
 - No conflicting lighting logic — one dominant light source with consistent fill.
 - Anatomy consistency — always prioritise realistic human posture and joint rotation; when head and body orientations differ, explicitly describe natural torso rotation with the head to prevent unnatural neck twisting or spine morphing.
 
-CAMERA VOCABULARY:
-follows, tracks, pans across, circles around, tilts upward, pushes in, pulls back, overhead view, handheld movement, over-the-shoulder, wide establishing shot, static frame, slow dolly-in, rack focus, creep forward, drift right, slow orbit, arc shot
+CAMERA VOCABULARY — these terms are natively understood by LTX 2.3, use them precisely:
+Movement: follows, tracks, pans across, circles around, tilts upward, pushes in, pulls back, creep forward, drift right, slow orbit, arc shot, slow dolly-in
+Framing: overhead view, over-the-shoulder, wide establishing shot, static frame, handheld movement, rack focus, low angle, Dutch tilt, POV
 
-Close the final sentence with these quality terms woven in naturally:
+PACING + TEMPORAL VOCABULARY — use when the scene calls for it:
+slow motion, time-lapse, rapid cuts, lingering shot, continuous shot, freeze-frame, fade-in, fade-out, seamless transition, sudden stop
+
+SCALE VOCABULARY — single words that set scene scale, use where appropriate:
+expansive, epic, intimate, claustrophobic
+
+FILM + VISUAL VOCABULARY — confirmed LTX-native style terms:
+film grain, lens flare, motion blur, depth of field, shallow depth of field, particle systems
+
+AUDIO VOCABULARY — confirmed LTX-native voice and sound descriptors:
+whisper, mutter, shout, scream, resonant, gravelly, breathless, crisp, muffled, distorted, room tone, ambient hum
+
+QUALITY TERMS — weave these naturally into the paragraph where they fit the sentence, do not tack them on as a standalone closing list:
 cinematic, ultra-detailed, sharp focus, photorealistic, masterpiece, maintains realistic human anatomy and natural joint rotation throughout
 
 Output only the prompt. Nothing before it, nothing after it."""
@@ -3119,9 +3132,11 @@ class Gemma4PromptGen:
             elif is_video_model(target_model):
                 parts.append(
                     "IMAGE CONTEXT (I2V): A start frame has been embedded above. "
-                    "Ground the prompt in exactly what you see — precise hair colour, skin tone, "
-                    "clothing, environment, lighting. Do not contradict the image. "
-                    "The prompt describes this image coming to life from this moment.\n"
+                    "SENTENCE 1 MUST ground exactly what you see in the frame — subject hair colour, "
+                    "skin tone, clothing, body position, environment, lighting. Do not contradict or invent. "
+                    "From sentence 2 onwards: describe the transition from stillness to motion — "
+                    "who moves, what moves, how the camera follows. Do not re-describe static elements "
+                    "already locked in sentence 1. Lock face and identity throughout.\n"
                 )
             else:
                 parts.append(
@@ -3172,6 +3187,18 @@ class Gemma4PromptGen:
 
         # Dialogue (video models only)
         if _dialogue_active and is_video_model(target_model) and not screenplay_mode:
+            # Duration-aware dialogue cap — short clips can't fit many spoken lines without
+            # LTX treating dense dialogue as subtitle markers. Cap hard at short durations.
+            _duration_sec = round(frame_count / 25.0, 1) if is_video_model(target_model) else 99
+            if _duration_sec <= 5:
+                parts.append(
+                    "DIALOGUE CAP — SHORT CLIP (≤5s): Maximum 1 spoken line total. "
+                    "One brief phrase in quotes, delivery noted inline. "
+                    "Do not cram multiple exchanges into a short clip.\n"
+                )
+                # Skip all further dialogue mode injection — cap overrides everything
+                _dialogue_active = False
+
             # instr_lower already computed above for energy detection — reuse it
             is_singing  = any(w in instr_lower for w in ["sing", "singing", "song", "vocal", "chorus", "lyrics", "melody"])
             is_asmr     = any(w in instr_lower for w in [
@@ -3215,21 +3242,16 @@ class Gemma4PromptGen:
                     # Universal Unleashed — talking saturates everything
                     parts.append(
                         "DIALOGUE MODE — UNLEASHED:\n"
-                        "SPOKEN WORDS ARE THE PRIMARY EVENT OF THIS ENTIRE VIDEO.\n"
-                        "Characters talk from the first frame to the last. Every sentence of this prompt contains actual spoken dialogue in double quotes.\n"
-                        "MANDATORY RULES — NON-NEGOTIABLE:\n"
-                        "- EVERY BEAT has spoken words. Not 'she speaks' — write what she says. In quotes. Every time.\n"
-                        "- Minimum 4 spoken lines per paragraph. No exceptions. If the scene has one character, they monologue. "
-                        "If it has two, they talk over each other.\n"
-                        "- Delivery is specified for EVERY line: the exact vocal register, pace, and physical state the words come from. "
-                        "Examples: low and flat through gritted teeth, rushing the words before she loses nerve, "
-                        "laughing mid-sentence and unable to stop, dropping to a whisper on the last word.\n"
-                        "- After each spoken line: one physical micro-reaction from the listener or the speaker's body, then the next line.\n"
-                        "- CAPS for peak-intensity lines — shouted words, breaking points, declarations — use them. Don't soften them.\n"
-                        "- Camera IS reactive to speech: push in when a confession lands, cut on a hard line, hold on a face through the silence after a question.\n"
-                        "- Audio layer: the voice is the primary track. Every other sound is under it.\n"
-                        "- Fill the prompt with words. Do not use atmosphere description as a substitute for dialogue. "
-                        "If you have written a sentence without spoken words in it, that is a failure. Fix it.\n"
+                        "Spoken words are the primary event. Every paragraph contains dialogue.\n"
+                        "RULES — LTX 2.3 prose format (no bracket markers, no em-dash separators):\n"
+                        "- Write dialogue woven into action prose: she says \"line\" in a low voice, "
+                        "pauses and glances sideways, then continues \"next line,\" voice dropping further.\n"
+                        "- After each spoken line: one physical beat from the speaker or listener — a breath, "
+                        "a hand movement, a weight shift — then the next line.\n"
+                        "- Delivery embedded in prose: \"low and flat\", \"rushing the words\", \"dropping to a whisper\".\n"
+                        "- CAPS for genuine peak moments — shouted words, breaking points — used sparingly so they land.\n"
+                        "- Camera responds to speech: pushes in on confessions, holds on faces during silence.\n"
+                        "- Audio layer: voice is primary track, everything else underneath.\n"
                     )
 
             elif _dialogue_mode == "More":
@@ -3257,24 +3279,23 @@ class Gemma4PromptGen:
                 elif is_talking:
                     parts.append(
                         "DIALOGUE MODE — TALKING (HIGH DENSITY):\n"
-                        "Spoken dialogue is the primary event. Every beat has words.\n"
-                        "RULES:\n"
-                        "- Minimum 3-4 spoken lines per paragraph in quotes.\n"
-                        "- Delivery specified for every line.\n"
-                        "- Camera reactive to speech — it moves when words land.\n"
-                        "- CAPS for peak-intensity lines where the emotion demands it.\n"
-                        "- No beat is wordless. Physical action exists to serve and frame the speech.\n"
+                        "Spoken dialogue is the primary event — woven into the action prose.\n"
+                        "RULES — LTX 2.3 format (no bracket markers, no em-dash separators):\n"
+                        "- Format: [physical action], she says \"actual words\" in [delivery], "
+                        "[physical beat from listener or speaker], then she continues \"next line.\"\n"
+                        "- Delivery embedded in sentence: \"in a breathless rush\", \"low and flat\", \"cracking on the last word\".\n"
+                        "- Camera moves when words land — push in on a confession, hold on a face after a question.\n"
+                        "- CAPS only at genuine peak moments.\n"
                     )
                 else:
                     parts.append(
-                        "DIALOGUE — HIGH DENSITY:\n"
-                        "Spoken words are required throughout. Every beat has at least one line of dialogue.\n"
-                        "RULES:\n"
-                        "- Minimum 3 spoken lines per paragraph, in double quotes.\n"
-                        "- Delivery specified every time: the vocal register and physical state it comes from.\n"
-                        "- CAPS where the scene calls for shouting, declarations, or breaking points.\n"
-                        "- Camera responds to the words — it doesn't just watch.\n"
-                        "- Never write 'she says something' — write the actual words.\n"
+                        "DIALOGUE — PRESENT THROUGHOUT:\n"
+                        "Spoken words appear throughout the prompt, woven naturally into the action.\n"
+                        "RULES — LTX 2.3 format:\n"
+                        "- Format: [action], she says \"actual line\" in [delivery], [physical beat], [camera response].\n"
+                        "- Write the actual words — never 'she speaks softly' without the words themselves.\n"
+                        "- Each line has a delivery note embedded in prose: \"low\", \"breathless\", \"flat\", \"laughing.\n"
+                        "- Camera reacts to speech.\n"
                     )
 
             else:
@@ -3305,36 +3326,25 @@ class Gemma4PromptGen:
                     )
                 elif is_talking:
                     parts.append(
-                        "DIALOGUE MODE — TALKING (PRIMARY FOCUS):\n"
-                        "Spoken dialogue is the primary event — physical action and camera serve the words.\n"
+                        "DIALOGUE MODE — TALKING:\n"
+                        "Spoken dialogue is woven into the action prose — LTX 2.3 style, no bracket markers.\n"
                         "RULES:\n"
-                        "- Every beat must contain actual spoken words in double quotes.\n"
-                        "- Minimum 2 spoken lines per paragraph.\n"
-                        "- Format: [physical setup] + [spoken line in quotes with delivery note] + [camera response].\n"
-                        "- Delivery must be specified: low and flat, rushed and breathless, cracking with tension, etc.\n"
-                        "- Do NOT write 'she says something' — write the actual words.\n"
+                        "- Format: [physical action], she says \"actual words\" [delivery note], "
+                        "[one physical beat], then continues \"next line.\"\n"
+                        "- Delivery embedded naturally: \"in a low voice\", \"rushing the words\", \"barely above a whisper\".\n"
+                        "- Write the actual spoken words — never 'she speaks' without the words.\n"
+                        "- Camera responds: push in when something lands, hold on a face after a question.\n"
                     )
                 else:
                     parts.append(
-                        "DIALOGUE: Spoken dialogue is required in this scene.\n"
+                        "DIALOGUE: Include spoken words naturally in the action prose.\n"
                         "RULES:\n"
-                        "- Include at least 2 spoken lines embedded directly in the action — words in double quotes.\n"
-                        "- Dialogue must be contextually relevant to this specific scene.\n"
-                        "- Each line must have a delivery note: whispered, flat, breathless, low, sharp, laughing.\n"
+                        "- Weave at least 2 spoken lines into the action — words in double quotes.\n"
+                        "- Format: she says \"actual line\" in [delivery], [brief physical beat].\n"
                         "- Never write 'she speaks softly' — write what she actually says.\n"
                     )
 
-        # Interstitial adlib injection — short filler beat between dialogue lines
-        if _dialogue_active and is_video_model(target_model):
-            interstitial = _pick_interstitial(instruction, seed)
-            parts.append(
-                f"INTERSTITIAL BEATS: Between dialogue lines, insert a short non-verbal beat. "
-                f"Example from this scene's context: {interstitial}. "
-                f"These are brief physical or sonic moments — a breath, a sound, a micro-reaction — "
-                f"that separate one line of dialogue from the next. "
-                f"Format: [line] — [interstitial beat] — [next line]. "
-                f"Pick a new interstitial each time, never repeat the same beat twice.\n"
-            )
+        # Interstitial beats — removed (was generating "line — [beat] — line" subtitle formatting)
         elif _dialogue_active and not is_video_model(target_model):
             parts.append(
                 "MOOD: The scene has a conversational, intimate quality — "
