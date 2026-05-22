@@ -1895,6 +1895,52 @@ SECTION 3 onwards — one paragraph per action beat, blank line between each.
 Each beat: physical action in present tense, dialogue in "quotes" with voice quality noted, camera move and what it finds, dominant sound. 2–4 sentences per beat. Alternate between characters. Keep actions physically simple — hip movement, weight shifts, reaching, turning, leaning. Do not write complex choreography. Do not write a label before each beat. Just write the paragraph and leave a blank line.
 Only write as many beats as the duration needs. When done, stop — do not write a trailing label or empty section."""
 
+# ── LTX 2.3 — Shot Script mode ───────────────────────────────────────────
+SYSTEM_LTX_SHOTSCRIPT = """Write a production shot script for LTX Video 2.3. No preamble, no explanation. Begin immediately with the starting image description.
+
+CHARACTERS — derive from the scene. Could be a woman, a man, two men, a creature, a robot, a kettle, anything. Use whatever label fits: Woman, Man, Voice, Creature, Machine, the character name — whatever makes sense. Never default to Woman if the scene has other subjects.
+
+OUTPUT FORMAT — follow exactly:
+
+Starting Image Description:
+The scene opens on the exact image: [one sentence grounding exactly what the start frame shows — all subjects, state/clothing/position, environment, lighting]
+
+[0-7 sec]
+[Action paragraph — 3 to 5 sentences. Present tense. Physical action only. Who moves, what moves, how fast, direction, physical response. Camera framing and one camera move included.]
+Background Sounds: [specific ambient and action sounds, comma-separated]
+[Subject A label] ([voice quality]): "[their line or sound]"
+[Subject B label] ([voice quality]): "[their line or sound]"
+
+[8-14 sec]
+[same structure — escalate from previous segment]
+Background Sounds: [...]
+[Subject A label] ([voice quality]): "[line]"
+[Subject B label] ([voice quality]): "[line]"
+
+[continue segments at 7-second intervals until clip duration is covered]
+
+End of [X]-second scene.
+
+TIMING RULES:
+- Segments use whole numbers only — never decimals. [0-7 sec], [8-14 sec], [15-21 sec], [22-28 sec] etc.
+- Each segment header format is exactly: [START-END sec] — square brackets, space before sec, nothing else on that line.
+- Segment length is 6-7 seconds. Final segment ends at the clip total duration rounded to whole seconds.
+
+DIALOGUE RULES:
+- Every segment gets one voice line per subject present in the scene.
+- If a subject has no words, they still get a line — a sound, breath, grunt, creak, hiss, whatever fits them.
+- Voice quality options: breathy, gasping, low, whispered, sharp, trembling, ecstatic, laughing, moaning, crying out, flat, nervous, confident, amused, mechanical, distorted.
+- Never stack multiple lines for the same subject in one segment.
+- All subjects must get a line every segment — nobody goes silent.
+
+CONTENT RULES:
+- Action paragraphs: physical only, no internal states, no abstract emotion labels.
+- Correct anatomical terms where relevant. No euphemisms.
+- Final segment must hit a clear peak — physical, emotional, or dramatic.
+- No section headers like BLOCK 1 or CHARACTERS. Just the content in the format above.
+
+Output only the shot script. Nothing before Starting Image Description: and nothing after End of X-second scene."""
+
 # ── Wan 2.2 ──────────────────────────────────────────────────────────────
 SYSTEM_WAN = """You write prompts for Wan 2.2, a video diffusion model optimised for cinematic motion, camera control, and physical realism. Output one paragraph of 80-120 words — no preamble, no label, no markdown.
 
@@ -2113,9 +2159,15 @@ worst quality, bad quality, blurry, low resolution, deformed, bad anatomy, extra
 #  SYSTEM PROMPT ROUTER
 # ══════════════════════════════════════════════════════════════════════════
 def get_system_prompt(target_model: str, screenplay_mode: bool = False,
+                      shotscript_mode: bool = False,
                       animation_preset: str = "None") -> str:
     if "LTX" in target_model:
-        base = SYSTEM_LTX_SCREENPLAY if screenplay_mode else SYSTEM_LTX
+        if shotscript_mode:
+            base = SYSTEM_LTX_SHOTSCRIPT
+        elif screenplay_mode:
+            base = SYSTEM_LTX_SCREENPLAY
+        else:
+            base = SYSTEM_LTX
     elif "Wan" in target_model:
         base = SYSTEM_WAN
     elif "Flux" in target_model:
@@ -2338,6 +2390,16 @@ class Gemma4PromptGen:
                         "unspecified characters. Good for scenes with dialogue and multiple beats."
                     ),
                 }),
+                "🎬 shotscript_mode": ("BOOLEAN", {
+                    "default": False,
+                    "tooltip": (
+                        "LTX 2.3 only. Generates a time-coded production shot script: "
+                        "Starting Image Description block, then [0-6 sec] / [7-13 sec] etc. segments, "
+                        "each with action paragraph, Background Sounds line, and dialogue/sound line. "
+                        "Designed for musubi-tuner AV training captions and LTX I2V workflows. "
+                        "Overrides screenplay_mode if both are on."
+                    ),
+                }),
             },
             "optional": {
                 # ── IMAGE INPUT ────────────────────────────────────────────
@@ -2454,6 +2516,7 @@ class Gemma4PromptGen:
         animation_preset  = _kw("🎭 animation_preset","animation_preset",  default="None")
         lora_preset       = _kw("🎞 lora_preset",     "lora_preset",       default="None")
         screenplay_mode   = _kw("📝 screenplay_mode", "screenplay_mode",   default=False)
+        shotscript_mode   = _kw("🎬 shotscript_mode", "shotscript_mode",   default=False)
         # removed: wildcards, caption_bridge, word_target, auto_retry
         wildcards         = False
         caption_bridge    = False
@@ -2592,13 +2655,14 @@ class Gemma4PromptGen:
             _temperature_float = _temp_map.get(temperature, 1.0)
 
             # Build message — use LoRA system prompt override if active
-            system_prompt = _lora_sys_override if _lora_sys_override else get_system_prompt(target_model, screenplay_mode, animation_preset)
+            system_prompt = _lora_sys_override if _lora_sys_override else get_system_prompt(target_model, screenplay_mode, shotscript_mode, animation_preset)
             combined = self._build_message(
                 instruction, system_prompt, target_model, environment,
                 frame_count, dialogue, character, seed, image_paths,
                 screenplay_mode, pov_mode, animation_preset, energy,
                 style_preset, word_target, content_gate=content_gate,
-                image_mode=image_mode, caption_bridge=caption_bridge
+                image_mode=image_mode, caption_bridge=caption_bridge,
+                shotscript_mode=shotscript_mode
             )
 
             # Generate
@@ -2623,7 +2687,7 @@ class Gemma4PromptGen:
                     except Exception:
                         pass
 
-            prompt, neg_prompt = self._clean_output(prompt, screenplay_mode=(screenplay_mode and "LTX" in target_model))
+            prompt, neg_prompt = self._clean_output(prompt, screenplay_mode=(screenplay_mode and "LTX" in target_model), shotscript_mode=(shotscript_mode and "LTX" in target_model))
 
             # Guard: if cleaning stripped everything (e.g. model only emitted junk/labels),
             # surface a clear retryable error rather than passing a blank string downstream
@@ -2647,7 +2711,8 @@ class Gemma4PromptGen:
                     )
                     retry_prompt, retry_neg = self._clean_output(
                         retry_prompt,
-                        screenplay_mode=(screenplay_mode and "LTX" in target_model)
+                        screenplay_mode=(screenplay_mode and "LTX" in target_model),
+                        shotscript_mode=(shotscript_mode and "LTX" in target_model)
                     )
                     if not retry_prompt.startswith("❌") and not retry_prompt.startswith("⚠️"):
                         _, retry_report, retry_score = self._check_prompt_quality(
@@ -2755,7 +2820,7 @@ class Gemma4PromptGen:
                        image_paths=None, screenplay_mode=False, pov_mode="Off",
                        animation_preset="None", energy="Intense",
                        style_preset="None", word_target=0, content_gate="Auto",
-                       image_mode="none", caption_bridge=True):
+                       image_mode="none", caption_bridge=True, shotscript_mode=False):
         """Assemble the full prompt message for Claude Code."""
 
         parts = []
@@ -3491,13 +3556,22 @@ class Gemma4PromptGen:
         else:
             _clean_instruction = instruction
 
-        parts.append(
-            "SCENE TO WRITE A PROMPT FOR:\n"
-            + _clean_instruction
-            + word_instruction
-            + "\n\nOutput the prompt now. One paragraph. No headers. No bullets. No preamble. "
-            "The first word you write is the first word of the cinematic paragraph itself. Begin:"
-        )
+        if shotscript_mode and "LTX" in target_model:
+            parts.append(
+                "SCENE TO WRITE A SHOT SCRIPT FOR:\n"
+                + _clean_instruction
+                + word_instruction
+                + "\n\nOutput the shot script now. Begin immediately with 'Starting Image Description:' — "
+                "no preamble, no explanation, nothing before that line. Follow the format exactly."
+            )
+        else:
+            parts.append(
+                "SCENE TO WRITE A PROMPT FOR:\n"
+                + _clean_instruction
+                + word_instruction
+                + "\n\nOutput the prompt now. One paragraph. No headers. No bullets. No preamble. "
+                "The first word you write is the first word of the cinematic paragraph itself. Begin:"
+            )
 
         return "\n".join(parts)
 
@@ -3623,7 +3697,7 @@ class Gemma4PromptGen:
 
         return passed, report, score
 
-    def _clean_output(self, text: str, screenplay_mode: bool = False) -> tuple:
+    def _clean_output(self, text: str, screenplay_mode: bool = False, shotscript_mode: bool = False) -> tuple:
         if text.startswith("❌") or text.startswith("⚠️"):
             return text, ""
 
@@ -3655,14 +3729,10 @@ class Gemma4PromptGen:
                 text = inner.strip()
 
         # ── Whole-response plan/summary detector ──────────────────────────
-        # If the model output a planning summary instead of a prompt, it will
-        # consist entirely of bullet lines, section headers, and meta-sentences.
-        # Detect this and return a clear error so the user knows to re-queue
-        # rather than passing garbage to the video model.
-        # Screenplay mode outputs structured blocks intentionally — skip plan detector
+        # Screenplay and shotscript modes output structured blocks intentionally — skip plan detector
         lines_raw = text.split("\n")
         non_empty = [l.strip() for l in lines_raw if l.strip()]
-        if non_empty and not screenplay_mode:
+        if non_empty and not screenplay_mode and not shotscript_mode:
             plan_markers = [
                 r"^\*\*",                       # **Opening:** etc
                 r"^-\s+\*\*",                   # - **Middle:**
@@ -3683,6 +3753,10 @@ class Gemma4PromptGen:
                     "⚠️ Model output a plan/summary instead of a prompt. "
                     "Re-queue to try again. If this repeats, reduce frame_count or simplify the instruction."
                 )
+
+        # Shotscript mode — structured format, skip junk stripper entirely
+        if shotscript_mode:
+            return text.strip(), ""
 
         lines = text.split("\n")
         cleaned = []
